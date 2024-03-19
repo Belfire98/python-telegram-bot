@@ -1,6 +1,2 @@
-CallbackQuery
-=============
+.. currentmodule:: telegram
 
-.. autoclass:: telegram.CallbackQuery
-    :members:
-    :show-inheritance:
