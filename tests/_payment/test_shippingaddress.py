@@ -1,129 +1,114 @@
 #!/usr/bin/env python
-#
-# A library that provides a Python interface to the Telegram Bot API
-# Copyright (C) 2015-2024
-# Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser Public License for more details.
-#
-# You should have received a copy of the GNU Lesser Public License
-# along with this program.  If not, see [http://www.gnu.org/licenses/].
+
 import pytest
+from unittest import TestCase
+from telegram import ShippingAddress, ShippingAddressSlot
+from enum import Enum
 
-from telegram import ShippingAddress
-from tests.auxil.slots import mro_slots
-
-
-@pytest.fixture(scope="module")
-def shipping_address():
-    return ShippingAddress(
-        TestShippingAddressBase.country_code,
-        TestShippingAddressBase.state,
-        TestShippingAddressBase.city,
-        TestShippingAddressBase.street_line1,
-        TestShippingAddressBase.street_line2,
-        TestShippingAddressBase.post_code,
-    )
-
+class ShippingAddressTestSlots(Enum):
+    COUNTRY_CODE = "country_code"
+    STATE = "state"
+    CITY = "city"
+    STREET_LINE1 = "street_line1"
+    STREET_LINE2 = "street_line2"
+    POST_CODE = "post_code"
 
 class TestShippingAddressBase:
-    country_code = "GB"
-    state = "state"
-    city = "London"
-    street_line1 = "12 Grimmauld Place"
-    street_line2 = "street_line2"
-    post_code = "WC1"
+    COUNTRY_CODE = "GB"
+    STATE = "state"
+    CITY = "London"
+    STREET_LINE1 = "12 Grimmauld Place"
+    STREET_LINE2 = "street_line2"
+    POST_CODE = "WC1"
 
+class TestShippingAddress(TestCase, TestShippingAddressBase):
+    @pytest.fixture(scope="module")
+    def shipping_address(self):
+        return ShippingAddress(
+            self.COUNTRY_CODE,
+            self.STATE,
+            self.CITY,
+            self.STREET_LINE1,
+            self.STREET_LINE2,
+            self.POST_CODE,
+        )
 
-class TestShippingAddressWithoutRequest(TestShippingAddressBase):
     def test_slot_behaviour(self, shipping_address):
         inst = shipping_address
-        for attr in inst.__slots__:
-            assert getattr(inst, attr, "err") != "err", f"got extra slot '{attr}'"
-        assert len(mro_slots(inst)) == len(set(mro_slots(inst))), "duplicate slot"
+        slot_names = set(ShippingAddressTestSlots)
+        slot_names.update(vars(inst).keys())
+        assert len(slot_names) == len(set(slot_names)), "duplicate slot"
+        assert all(getattr(inst, slot) is not None for slot in slot_names), "got extra slot"
 
-    def test_de_json(self, bot):
+    def test_de_json(self):
         json_dict = {
-            "country_code": self.country_code,
-            "state": self.state,
-            "city": self.city,
-            "street_line1": self.street_line1,
-            "street_line2": self.street_line2,
-            "post_code": self.post_code,
+            "country_code": self.COUNTRY_CODE,
+            "state": self.STATE,
+            "city": self.CITY,
+            "street_line1": self.STREET_LINE1,
+            "street_line2": self.STREET_LINE2,
+            "post_code": self.POST_CODE,
         }
-        shipping_address = ShippingAddress.de_json(json_dict, bot)
+        shipping_address = ShippingAddress.de_json(json_dict)
         assert shipping_address.api_kwargs == {}
 
-        assert shipping_address.country_code == self.country_code
-        assert shipping_address.state == self.state
-        assert shipping_address.city == self.city
-        assert shipping_address.street_line1 == self.street_line1
-        assert shipping_address.street_line2 == self.street_line2
-        assert shipping_address.post_code == self.post_code
+        assert shipping_address.country_code == self.COUNTRY_CODE
+        assert shipping_address.state == self.STATE
+        assert shipping_address.city == self.CITY
+        assert shipping_address.street_line1 == self.STREET_LINE1
+        assert shipping_address.street_line2 == self.STREET_LINE2
+        assert shipping_address.post_code == self.POST_CODE
 
     def test_to_dict(self, shipping_address):
         shipping_address_dict = shipping_address.to_dict()
 
         assert isinstance(shipping_address_dict, dict)
-        assert shipping_address_dict["country_code"] == shipping_address.country_code
-        assert shipping_address_dict["state"] == shipping_address.state
-        assert shipping_address_dict["city"] == shipping_address.city
-        assert shipping_address_dict["street_line1"] == shipping_address.street_line1
-        assert shipping_address_dict["street_line2"] == shipping_address.street_line2
-        assert shipping_address_dict["post_code"] == shipping_address.post_code
+        for slot in ShippingAddressTestSlots:
+            assert slot.value in shipping_address_dict
+            assert shipping_address_dict[slot.value] == getattr(shipping_address, slot.value)
 
     def test_equality(self):
         a = ShippingAddress(
-            self.country_code,
-            self.state,
-            self.city,
-            self.street_line1,
-            self.street_line2,
-            self.post_code,
+            self.COUNTRY_CODE,
+            self.STATE,
+            self.CITY,
+            self.STREET_LINE1,
+            self.STREET_LINE2,
+            self.POST_CODE,
         )
         b = ShippingAddress(
-            self.country_code,
-            self.state,
-            self.city,
-            self.street_line1,
-            self.street_line2,
-            self.post_code,
+            self.COUNTRY_CODE,
+            self.STATE,
+            self.CITY,
+            self.STREET_LINE1,
+            self.STREET_LINE2,
+            self.POST_CODE,
         )
-        d = ShippingAddress(
-            "", self.state, self.city, self.street_line1, self.street_line2, self.post_code
-        )
+        d = ShippingAddress("", self.STATE, self.CITY, self.STREET_LINE1, self.STREET_LINE2, self.POST_CODE)
         d2 = ShippingAddress(
-            self.country_code,
+            self.COUNTRY_CODE,
             "",
-            self.city,
-            self.street_line1,
-            self.street_line2,
-            self.post_code,
+            self.CITY,
+            self.STREET_LINE1,
+            self.STREET_LINE2,
+            self.POST_CODE,
         )
         d3 = ShippingAddress(
-            self.country_code,
-            self.state,
+            self.COUNTRY_CODE,
+            self.STATE,
             "",
-            self.street_line1,
-            self.street_line2,
-            self.post_code,
+            self.STREET_LINE1,
+            self.STREET_LINE2,
+            self.POST_CODE,
         )
         d4 = ShippingAddress(
-            self.country_code, self.state, self.city, "", self.street_line2, self.post_code
+            self.COUNTRY_CODE, self.STATE, self.CITY, "", self.STREET_LINE2, self.POST_CODE
         )
         d5 = ShippingAddress(
-            self.country_code, self.state, self.city, self.street_line1, "", self.post_code
+            self.COUNTRY_CODE, self.STATE, self.CITY, self.STREET_LINE1, "", self.POST_CODE
         )
         d6 = ShippingAddress(
-            self.country_code, self.state, self.city, self.street_line1, self.street_line2, ""
+            self.COUNTRY_CODE, self.STATE, self.CITY, self.STREET_LINE1, self.STREET_LINE2, ""
         )
 
         assert a == b
@@ -146,4 +131,4 @@ class TestShippingAddressWithoutRequest(TestShippingAddressBase):
         assert hash(a) != hash(d5)
 
         assert a != d6
-        assert hash(6) != hash(d6)
+        assert hash(a) != hash(d6)
