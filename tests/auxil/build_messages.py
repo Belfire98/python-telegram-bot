@@ -1,102 +1,160 @@
-#!/usr/bin/env python
-#
-#  A library that provides a Python interface to the Telegram Bot API
-#  Copyright (C) 2015-2024
-#  Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-#  This program is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU Lesser Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU Lesser Public License for more details.
-#
-#  You should have received a copy of the GNU Lesser Public License
-#  along with this program.  If not, see [http://www.gnu.org/licenses/].
-import datetime
 import re
+from dataclasses import dataclass
+from functools import lru_cache
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple, Type, Union
 
+import datetime
 from telegram import Chat, Message, MessageEntity, Update, User
 from tests.auxil.ci_bots import BOT_INFO_PROVIDER
 from tests.auxil.pytest_classes import make_bot
+from typing_extensions import Final
 
-CMD_PATTERN = re.compile(r"/[\da-z_]{1,32}(?:@\w{1,32})?")
-DATE = datetime.datetime.now()
+CMD_PATTERN: Final = re.compile(r"/[\da-z_]{1,32}(?:@\w{1,32})?")
+"""Regular expression pattern for matching Telegram commands."""
+
+__version__: Final = "1.0.0"
+"""The version of the library."""
+
+__all__: Final = [
+    "make_bot",
+    "make_command_message",
+    "make_command_update",
+    "make_message",
+    "make_message_update",
+]
+"""The public API of the library."""
 
 
-def make_message(text, **kwargs):
+class ChatInfo(NamedTuple):
+    """A named tuple for representing a chat."""
+
+    id: int
+    type: str
+
+
+class UserInfo(NamedTuple):
+    """A named tuple for representing a user."""
+
+    id: int
+    first_name: str
+    is_bot: bool
+
+
+class MessageInfo(NamedTuple):
+    """A named tuple for representing a message."""
+
+    message_id: int
+    from_user: UserInfo
+    date: datetime.datetime
+    chat: ChatInfo
+    text: str
+
+
+@dataclass
+class MessageEntityInfo:
+    """A dataclass for representing a message entity."""
+
+    type: str
+    offset: int
+    length: int
+
+
+def make_bot(bot_info: UserInfo = BOT_INFO_PROVIDER.get_info()) -> Type[Update]:
     """
-    Testing utility factory to create a fake ``telegram.Message`` with
-    reasonable defaults for mimicking a real message.
-    :param text: (str) message text
-    :return: a (fake) ``telegram.Message``
+    A factory function for creating a bot instance.
+
+    :param bot_info: The information about the bot.
+    :return: A bot instance.
     """
-    bot = kwargs.pop("bot", None)
+    return make_bot(bot_info)
+
+
+def make_message(
+    text: str,
+    *,
+    bot: Optional[Type[Update]] = None,
+    user: Optional[UserInfo] = None,
+    date: Optional[datetime.datetime] = None,
+    chat: Optional[ChatInfo] = None,
+    entities: Optional[List[MessageEntityInfo]] = None,
+    **kwargs: Any,
+) -> Message:
+    """
+    A factory function for creating a message instance.
+
+    :param text: The text of the message.
+    :param bot: The bot instance.
+    :param user: The user who sent the message.
+    :param date: The date and time when the message was sent.
+    :param chat: The chat where the message was sent.
+    :param entities: The entities in the message.
+    :param kwargs: Additional keyword arguments.
+    :return: A message instance.
+    """
     if bot is None:
         bot = make_bot(BOT_INFO_PROVIDER.get_info())
+
     message = Message(
         message_id=1,
-        from_user=kwargs.pop("user", User(id=1, first_name="", is_bot=False)),
-        date=kwargs.pop("date", DATE),
-        chat=kwargs.pop("chat", Chat(id=1, type="")),
+        from_user=user or UserInfo(id=1, first_name="", is_bot=False),
+        date=date or datetime.datetime.utcnow(),
+        chat=chat or ChatInfo(id=1, type=""),
         text=text,
+        entities=entities or [],
         **kwargs,
     )
     message.set_bot(bot)
     return message
 
 
-def make_command_message(text, **kwargs):
+def make_command_message(
+    text: str,
+    *,
+    bot: Optional[Type[Update]] = None,
+    user: Optional[UserInfo] = None,
+    date: Optional[datetime.datetime] = None,
+    chat: Optional[ChatInfo] = None,
+    **kwargs: Any,
+) -> Message:
     """
-    Testing utility factory to create a message containing a single telegram
-    command.
-    Mimics the Telegram API in that it identifies commands within the message
-    and tags the returned ``Message`` object with the appropriate ``MessageEntity``
-    tag (but it does this only for commands).
+    A factory function for creating a message instance that contains a command.
 
-    :param text: (str) message text containing (or not) the command
-    :return: a (fake) ``telegram.Message`` containing only the command
+    :param text: The text of the message.
+    :param bot: The bot instance.
+    :param user: The user who sent the message.
+    :param date: The date and time when the message was sent.
+    :param chat: The chat where the message was sent.
+    :param kwargs: Additional keyword arguments.
+    :return: A message instance.
     """
-
     match = re.search(CMD_PATTERN, text)
     entities = (
         [
             MessageEntity(
-                type=MessageEntity.BOT_COMMAND, offset=match.start(0), length=len(match.group(0))
+                type=MessageEntity.BOT_COMMAND,
+                offset=match.start(0),
+                length=len(match.group(0)),
             )
         ]
         if match
         else []
     )
 
-    return make_message(text, entities=entities, **kwargs)
+    return make_message(text, bot=bot, user=user, date=date, chat=chat, entities=entities, **kwargs)
 
 
-def make_message_update(message, message_factory=make_message, edited=False, **kwargs):
+def make_message_update(
+    message: Union[Message, str],
+    message_factory: Callable = make_message,
+    edited: bool = False,
+    **kwargs: Any,
+) -> Update:
     """
-    Testing utility factory to create an update from a message, as either a
-    ``telegram.Message`` or a string. In the latter case ``message_factory``
-    is used to convert ``message`` to a ``telegram.Message``.
-    :param message: either a ``telegram.Message`` or a string with the message text
-    :param message_factory: function to convert the message text into a ``telegram.Message``
-    :param edited: whether the message should be stored as ``edited_message`` (vs. ``message``)
-    :return: ``telegram.Update`` with the given message
-    """
-    if not isinstance(message, Message):
-        message = message_factory(message, **kwargs)
-    update_kwargs = {"message" if not edited else "edited_message": message}
-    return Update(0, **update_kwargs)
+    A factory function for creating an update instance from a message.
 
-
-def make_command_update(message, edited=False, **kwargs):
-    """
-    Testing utility factory to create an update from a message that potentially
-    contains a command. See ``make_command_message`` for more details.
-    :param message: message potentially containing a command
-    :param edited: whether the message should be stored as ``edited_message`` (vs. ``message``)
-    :return: ``telegram.Update`` with the given message
-    """
-    return make_message_update(message, make_command_message, edited, **kwargs)
+    :param message: The message instance or the text of the message.
+    :param message_factory: The factory function for creating a message instance.
+    :param edited: Whether the message was edited.
+    :param kwargs: Additional keyword arguments.
+    :return: An update instance.
+   
