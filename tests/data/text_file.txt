@@ -1,1 +1,7 @@
-PTB Rocks! ⅞
+def print_ptb_rocks(score):
+    score_str = f"{score}/8" if score < 9 else "8/8"
+    message = f"PTB Rocks! {score_str}"
+    print(message)
+
+# Call the function with a score
+print_ptb_rocks(7)
