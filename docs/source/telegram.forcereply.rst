@@ -1,6 +1,6 @@
 ForceReply
 ==========
 
-.. autoclass:: telegram.ForceReply
+.. autoclass:: telegram.ForceReply(timeout=None, disable_notification=False)
     :members:
-    :show-inheritance:
+
