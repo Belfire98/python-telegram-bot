@@ -1,6 +1,7 @@
-InlineQuery
-===========
+from telegram.inlinequery import InlineQuery
 
-.. autoclass:: telegram.InlineQuery
+.. autoclass:: InlineQuery
     :members:
     :show-inheritance:
+    :undoc-members:
+
