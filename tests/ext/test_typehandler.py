@@ -1,68 +1,68 @@
 #!/usr/bin/env python
-#
-# A library that provides a Python interface to the Telegram Bot API
-# Copyright (C) 2015-2024
-# Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser Public License for more details.
-#
-# You should have received a copy of the GNU Lesser Public License
-# along with this program.  If not, see [http://www.gnu.org/licenses/].
+
 import asyncio
 from collections import OrderedDict
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 import pytest
 
-from telegram import Bot
+import telegram
 from telegram.ext import CallbackContext, JobQueue, TypeHandler
 from tests.auxil.slots import mro_slots
 
 
 class TestTypeHandler:
-    test_flag = False
-
-    def test_slot_behaviour(self):
-        inst = TypeHandler(dict, self.callback)
-        for attr in inst.__slots__:
-            assert getattr(inst, attr, "err") != "err", f"got extra slot '{attr}'"
-        assert len(mro_slots(inst)) == len(set(mro_slots(inst))), "duplicate slot"
+    test_flag: bool = False
 
     @pytest.fixture(autouse=True)
     def _reset(self):
         self.test_flag = False
 
-    async def callback(self, update, context):
-        self.test_flag = (
-            isinstance(context, CallbackContext)
-            and isinstance(context.bot, Bot)
-            and isinstance(update, dict)
-            and isinstance(context.update_queue, asyncio.Queue)
-            and isinstance(context.job_queue, JobQueue)
-            and context.user_data is None
-            and context.chat_data is None
-            and isinstance(context.bot_data, dict)
-        )
+    @pytest.mark.parametrize(
+        "attr,expected",
+        [
+            ("check_update", Callable[[Dict[str, Any]], bool]),
+            ("process_update", Callable[[Dict[str, Any]], None]),
+            ("__init__", Callable[[Type[Dict[str, Any]], Callable], None]),
+        ],
+    )
+    def test_slot_behaviour(self, attr: str, expected: Type[Callable]):
+        inst = TypeHandler(dict, self.callback)
+        for slot in mro_slots(inst):
+            attr_value = getattr(inst, slot, "err")
+            if slot == attr:
+                assert isinstance(attr_value, expected), f"got wrong type for slot '{slot}'"
+            elif attr_value != "err":
+                assert not isinstance(attr_value, expected), f"got extra slot '{slot}'"
+        assert len(mro_slots(inst)) == len(set(mro_slots(inst))), "duplicate slot"
 
-    async def test_basic(self, app):
+    @pytest.mark.parametrize(
+        "update,expected",
+        [
+            ({"a": 1, "b": 2}, True),
+            ("not a dict", False),
+        ],
+    )
+    async def test_check_update(self, update: Union[Dict[str, Any], str], expected: bool):
+        handler = TypeHandler(dict, self.callback)
+        assert handler.check_update(update) == expected
+
+    @pytest.mark.parametrize(
+        "update,expected",
+        [
+            ({"a": 1, "b": 2}, None),
+        ],
+    )
+    async def test_process_update(self, app, update: Dict[str, Any], expected: Optional[None]):
         handler = TypeHandler(dict, self.callback)
         app.add_handler(handler)
+        await app.process_update(update)
+        assert self.test_flag == expected
 
-        assert handler.check_update({"a": 1, "b": 2})
-        assert not handler.check_update("not a dict")
-        async with app:
-            await app.process_update({"a": 1, "b": 2})
-        assert self.test_flag
-
-    def test_strict(self):
-        handler = TypeHandler(dict, self.callback, strict=True)
-        o = OrderedDict({"a": 1, "b": 2})
-        assert handler.check_update({"a": 1, "b": 2})
-        assert not handler.check_update(o)
+    @pytest.mark.parametrize(
+        "update,strict,expected",
+        [
+            ({"a": 1, "b": 2}, False, True),
+            (OrderedDict({"a": 1, "b": 2}), False, True),
+            ({"a": 1, "b": 2}, True, True),
+            (OrderedDict({"a": 1, "b": 2}), True
