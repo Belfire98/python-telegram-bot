@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Lesser Public License
 """This module contains a class that represents a Telegram SwitchInlineQueryChosenChat."""
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from telegram._telegramobject import TelegramObject
 from telegram._utils.types import JSONDict
@@ -49,17 +49,19 @@ class SwitchInlineQueryChosenChat(TelegramObject):
             can be chosen.
         allow_channel_chats (:obj:`bool`, optional): Pass :obj:`True`, if channel chats can be
             chosen.
+        api_kwargs (:obj:`dict`, optional): Additional keyword arguments for the constructor of
+            :class:`telegram._telegramobject.TelegramObject`.
 
     Attributes:
-        query (:obj:`str`): Optional. The default inline query to be inserted in the input field.
+        query (:obj:`str`, optional): The default inline query to be inserted in the input field.
             If left empty, only the bot's username will be inserted.
-        allow_user_chats (:obj:`bool`): Optional. :obj:`True`, if private chats with users can be
+        allow_user_chats (:obj:`bool`, optional): :obj:`True`, if private chats with users can be
             chosen.
-        allow_bot_chats (:obj:`bool`): Optional. :obj:`True`, if private chats with bots can be
+        allow_bot_chats (:obj:`bool`, optional): :obj:`True`, if private chats with bots can be
             chosen.
-        allow_group_chats (:obj:`bool`): Optional. :obj:`True`, if group and supergroup chats can
+        allow_group_chats (:obj:`bool`, optional): :obj:`True`, if group and supergroup chats can
             be chosen.
-        allow_channel_chats (:obj:`bool`): Optional. :obj:`True`, if channel chats can be chosen.
+        allow_channel_chats (:obj:`bool`, optional): :obj:`True`, if channel chats can be chosen.
 
     """
 
@@ -82,19 +84,32 @@ class SwitchInlineQueryChosenChat(TelegramObject):
         api_kwargs: Optional[JSONDict] = None,
     ):
         super().__init__(api_kwargs=api_kwargs)
-        # Optional
-        self.query: Optional[str] = query
-        self.allow_user_chats: Optional[bool] = allow_user_chats
-        self.allow_bot_chats: Optional[bool] = allow_bot_chats
-        self.allow_group_chats: Optional[bool] = allow_group_chats
-        self.allow_channel_chats: Optional[bool] = allow_channel_chats
+        self.__post_init__()
 
-        self._id_attrs = (
-            self.query,
-            self.allow_user_chats,
-            self.allow_bot_chats,
-            self.allow_group_chats,
-            self.allow_channel_chats,
-        )
+    def __post_init__(self):
+        # Set default values for optional attributes
+        if self.allow_user_chats is None:
+            self.allow_user_chats = False
+        if self.allow_bot_chats is None:
+            self.allow_bot_chats = False
+        if self.allow_group_chats is None:
+            self.allow_group_chats = False
+        if self.allow_channel_chats is None:
+            self.allow_channel_chats = False
 
-        self._freeze()
+        # Check that at least one of the allow_*_chats attributes is set to True
+        if not (
+            self.allow_user_chats
+            or self.allow_bot_chats
+            or self.allow_group_chats
+            or self.allow_channel_chats
+        ):
+            raise ValueError(
+                "At least one of allow_user_chats, allow_bot_chats, allow_group_chats, or "
+                "allow_channel_chats must be set to True."
+            )
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "SwitchInlineQueryChosenChat":
+        """
+        Create an instance of SwitchInline
