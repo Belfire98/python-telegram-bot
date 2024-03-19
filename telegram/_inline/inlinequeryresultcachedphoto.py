@@ -1,37 +1,18 @@
 #!/usr/bin/env python
-#
-# A library that provides a Python interface to the Telegram Bot API
-# Copyright (C) 2015-2024
-# Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser Public License for more details.
-#
-# You should have received a copy of the GNU Lesser Public License
-# along with this program.  If not, see [http://www.gnu.org/licenses/].
-"""This module contains the classes that represent Telegram InlineQueryResultPhoto"""
-from typing import TYPE_CHECKING, Optional, Sequence, Tuple
+
+from typing import Literal, Optional, Sequence, Tuple, Union
 
 from telegram._inline.inlinekeyboardmarkup import InlineKeyboardMarkup
 from telegram._inline.inlinequeryresult import InlineQueryResult
 from telegram._messageentity import MessageEntity
 from telegram._utils.argumentparsing import parse_sequence_arg
 from telegram._utils.defaultvalue import DEFAULT_NONE
-from telegram._utils.types import JSONDict, ODVInput
-from telegram.constants import InlineQueryResultType
+from telegram._utils.types import JSONDict, ODVInput, Serializable
 
 if TYPE_CHECKING:
-    from telegram import InputMessageContent
+    from telegram import InputMessageContent, InputMessageContentABC
 
-
-class InlineQueryResultCachedPhoto(InlineQueryResult):
+class InlineQueryResultCachedPhoto(InlineQueryResult, Serializable):
     """
     Represents a link to a photo stored on the Telegram servers. By default, this photo will be
     sent by the user with an optional caption. Alternatively, you can use
@@ -41,48 +22,49 @@ class InlineQueryResultCachedPhoto(InlineQueryResult):
     .. seealso:: :wiki:`Working with Files and Media <Working-with-Files-and-Media>`
 
     Args:
-        id (:obj:`str`): Unique identifier for this result,
+        type (Literal['photo']): Type of the result, must be :tg-const:`telegram.constants.InlineQueryResultType.PHOTO`.
+        id (str): Unique identifier for this result,
             :tg-const:`telegram.InlineQueryResult.MIN_ID_LENGTH`-
             :tg-const:`telegram.InlineQueryResult.MAX_ID_LENGTH` Bytes.
-        photo_file_id (:obj:`str`): A valid file identifier of the photo.
-        title (:obj:`str`, optional): Title for the result.
-        description (:obj:`str`, optional): Short description of the result.
-        caption (:obj:`str`, optional): Caption of the photo to be sent,
+        photo_file_id (str): A valid file identifier of the photo.
+        title (Optional[str]): Title for the result.
+        description (Optional[str]): Short description of the result.
+        caption (Optional[str]): Caption of the photo to be sent,
             0-:tg-const:`telegram.constants.MessageLimit.CAPTION_LENGTH` characters after
             entities parsing.
-        parse_mode (:obj:`str`, optional): |parse_mode|
-        caption_entities (Sequence[:class:`telegram.MessageEntity`], optional): |caption_entities|
+        parse_mode (Union[str, None]): |parse_mode|
+        caption_entities (Sequence[:class:`telegram.MessageEntity`]): |caption_entities|
 
             .. versionchanged:: 20.0
                 |sequenceclassargs|
 
-        reply_markup (:class:`telegram.InlineKeyboardMarkup`, optional): Inline keyboard attached
+        reply_markup (Optional[:class:`telegram.InlineKeyboardMarkup`]): Inline keyboard attached
             to the message.
-        input_message_content (:class:`telegram.InputMessageContent`, optional): Content of the
+        input_message_content (Optional[:class:`telegram.InputMessageContent`]): Content of the
             message to be sent instead of the photo.
 
     Attributes:
-        type (:obj:`str`): :tg-const:`telegram.constants.InlineQueryResultType.PHOTO`.
-        id (:obj:`str`): Unique identifier for this result,
+        type (Literal['photo']): Type of the result, must be :tg-const:`telegram.constants.InlineQueryResultType.PHOTO`.
+        id (str): Unique identifier for this result,
             :tg-const:`telegram.InlineQueryResult.MIN_ID_LENGTH`-
             :tg-const:`telegram.InlineQueryResult.MAX_ID_LENGTH` Bytes.
-        photo_file_id (:obj:`str`): A valid file identifier of the photo.
-        title (:obj:`str`): Optional. Title for the result.
-        description (:obj:`str`): Optional. Short description of the result.
-        caption (:obj:`str`): Optional. Caption of the photo to be sent,
+        photo_file_id (str): A valid file identifier of the photo.
+        title (Optional[str]): Optional. Title for the result.
+        description (Optional[str]): Optional. Short description of the result.
+        caption (Optional[str]): Optional. Caption of the photo to be sent,
             0-:tg-const:`telegram.constants.MessageLimit.CAPTION_LENGTH` characters after
             entities parsing.
-        parse_mode (:obj:`str`): Optional. |parse_mode|
+        parse_mode (Union[str, None]): Optional. |parse_mode|
         caption_entities (Tuple[:class:`telegram.MessageEntity`]): Optional. |captionentitiesattr|
 
             .. versionchanged:: 20.0
 
                 * |tupleclassattrs|
                 * |alwaystuple|
-        reply_markup (:class:`telegram.InlineKeyboardMarkup`): Optional. Inline keyboard attached
-            to the message.
-        input_message_content (:class:`telegram.InputMessageContent`): Optional. Content of the
-            message to be sent instead of the photo.
+        reply_markup (Optional[:class:`telegram.InlineKeyboardMarkup`]): Optional. Inline keyboard
+            attached to the message.
+        input_message_content (Optional[:class:`telegram.InputMessageContent`]): Optional. Content
+            of the message to be sent instead of the photo.
 
     """
 
@@ -90,6 +72,7 @@ class InlineQueryResultCachedPhoto(InlineQueryResult):
         "caption",
         "caption_entities",
         "description",
+        "id",
         "input_message_content",
         "parse_mode",
         "photo_file_id",
@@ -99,28 +82,31 @@ class InlineQueryResultCachedPhoto(InlineQueryResult):
 
     def __init__(
         self,
-        id: str,  # pylint: disable=redefined-builtin
+        *,
+        type: Literal['photo'] = InlineQueryResultType.PHOTO,
+        id: str,
         photo_file_id: str,
         title: Optional[str] = None,
         description: Optional[str] = None,
         caption: Optional[str] = None,
         reply_markup: Optional[InlineKeyboardMarkup] = None,
-        input_message_content: Optional["InputMessageContent"] = None,
+        input_message_content: Optional[InputMessageContent] = None,
         parse_mode: ODVInput[str] = DEFAULT_NONE,
         caption_entities: Optional[Sequence[MessageEntity]] = None,
-        *,
-        api_kwargs: Optional[JSONDict] = None,
+        **kwargs,
     ):
-        # Required
-        super().__init__(InlineQueryResultType.PHOTO, id, api_kwargs=api_kwargs)
-        with self._unfrozen():
-            self.photo_file_id: str = photo_file_id
+        super().__init__(type=type, id=id, **kwargs)
+        self.photo_file_id: str = photo_file_id
+        self.title: Optional[str] = title
+        self.description: Optional[str] = description
+        self.caption: Optional[str] = caption
+        self.parse_mode: ODVInput[str] = parse_mode
+        self.caption_entities: Tuple[MessageEntity, ...] = parse_sequence_arg(caption_entities)
+        self.reply_markup: Optional[InlineKeyboardMarkup] = reply_markup
+        self.input_message_content: Optional[InputMessageContent] = input_message_content
 
-            # Optionals
-            self.title: Optional[str] = title
-            self.description: Optional[str] = description
-            self.caption: Optional[str] = caption
-            self.parse_mode: ODVInput[str] = parse_mode
-            self.caption_entities: Tuple[MessageEntity, ...] = parse_sequence_arg(caption_entities)
-            self.reply_markup: Optional[InlineKeyboardMarkup] = reply_markup
-            self.input_message_content: Optional[InputMessageContent] = input_message_content
+    @classmethod
+    def from_dict(cls, data: JSONDict) -> "InlineQueryResultCachedPhoto":
+        data = data.copy()
+        data.pop("type")
+        return super().from_dict(data
