@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser Public License
 # along with this program.  If not, see [http://www.gnu.org/licenses/].
 """Common base class for media objects with thumbnails"""
-from typing import TYPE_CHECKING, Optional, Type, TypeVar
+from typing import TYPE_CHECKING, Optional, Type, TypeVar, Union
 
 from telegram._files._basemedium import _BaseMedium
 from telegram._files.photosize import PhotoSize
@@ -38,23 +38,23 @@ class _BaseThumbedMedium(_BaseMedium):
     considered equal, if their :attr:`file_unique_id` is equal.
 
     Args:
-        file_id (:obj:`str`): Identifier for this file, which can be used to download
+        file_id (str): Identifier for this file, which can be used to download
             or reuse the file.
-        file_unique_id (:obj:`str`): Unique identifier for this file, which
+        file_unique_id (str): Unique identifier for this file, which
             is supposed to be the same over time and for different bots.
             Can't be used to download or reuse the file.
-        file_size (:obj:`int`, optional): File size.
-        thumbnail (:class:`telegram.PhotoSize`, optional): Thumbnail as defined by sender.
+        file_size (Optional[int]): File size.
+        thumbnail (Optional[PhotoSize]): Thumbnail as defined by sender.
 
             .. versionadded:: 20.2
 
     Attributes:
-        file_id (:obj:`str`): File identifier.
-        file_unique_id (:obj:`str`): Unique identifier for this file, which
+        file_id (str): File identifier.
+        file_unique_id (str): Unique identifier for this file, which
             is supposed to be the same over time and for different bots.
             Can't be used to download or reuse the file.
-        file_size (:obj:`int`): Optional. File size.
-        thumbnail (:class:`telegram.PhotoSize`): Optional. Thumbnail as defined by sender.
+        file_size (Optional[int]): Optional. File size.
+        thumbnail (Optional[PhotoSize]): Optional. Thumbnail as defined by sender.
 
             .. versionadded:: 20.2
 
@@ -79,6 +79,23 @@ class _BaseThumbedMedium(_BaseMedium):
         )
 
         self.thumbnail: Optional[PhotoSize] = thumbnail
+
+    @classmethod
+    def from_file_id_and_thumbnail(
+        cls: Type[ThumbedMT_co], file_id: str, thumbnail: Optional[PhotoSize] = None
+    ) -> ThumbedMT_co:
+        """
+        Create an instance of the class from a file_id and thumbnail.
+
+        Args:
+            file_id (str): Identifier for the file.
+            thumbnail (Optional[PhotoSize]): Thumbnail as defined by sender.
+
+        Returns:
+            ThumbedMT_co: An instance of the class with the given file_id and thumbnail.
+
+        """
+        return cls(file_id=file_id, file_unique_id=file_id, thumbnail=thumbnail)
 
     @classmethod
     def de_json(
