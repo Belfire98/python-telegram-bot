@@ -1,26 +1,59 @@
-Handlers
---------
-
 .. toctree::
-    :titlesonly:
+   :maxdepth: 2
+   :caption: Handlers
 
-    telegram.ext.basehandler
-    telegram.ext.callbackqueryhandler
-    telegram.ext.chatboosthandler
-    telegram.ext.chatjoinrequesthandler
-    telegram.ext.chatmemberhandler
-    telegram.ext.choseninlineresulthandler
-    telegram.ext.commandhandler
-    telegram.ext.conversationhandler
-    telegram.ext.filters
-    telegram.ext.inlinequeryhandler
-    telegram.ext.messagehandler
-    telegram.ext.messagereactionhandler
-    telegram.ext.pollanswerhandler
-    telegram.ext.pollhandler
-    telegram.ext.precheckoutqueryhandler
-    telegram.ext.prefixhandler
-    telegram.ext.shippingqueryhandler
-    telegram.ext.stringcommandhandler
-    telegram.ext.stringregexhandler
-    telegram.ext.typehandler
+telegram.ext.handlers <https://telegram.org/docs/bots/api#available-handlers>
+
+.. automodule:: telegram.ext.basehandler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: telegram.ext.callbackqueryhandler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: telegram.ext.chatboosthandler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: telegram.ext.chatjoinrequesthandler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: telegram.ext.chatmemberhandler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: telegram.ext.choseninlineresulthandler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: telegram.ext.commandhandler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: telegram.ext.conversationhandler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: telegram.ext.filters
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: telegram.ext.inlinequeryhandler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: telegram.ext.messagehandler
+   :members:
+   :undoc-members
