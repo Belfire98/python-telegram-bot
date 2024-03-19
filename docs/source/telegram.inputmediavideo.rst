@@ -1,6 +1,7 @@
-InputMediaVideo
-===============
+.. module:: telegram
 
-.. autoclass:: telegram.InputMediaVideo
+.. autoclass:: InputMediaVideo
     :members:
+    :special-members: __init__
+    :undoc-members:
     :show-inheritance:
