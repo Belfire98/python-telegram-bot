@@ -1,53 +1,26 @@
 #!/usr/bin/env python
-#
-# A library that provides a Python interface to the Telegram Bot API
-# Copyright (C) 2015-2024
-# Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser Public License for more details.
-#
-# You should have received a copy of the GNU Lesser Public License
-# along with this program.  If not, see [http://www.gnu.org/licenses/].
+
 import asyncio
-
 import pytest
+from typing import Any, Callable, Coroutine, Dict, List, Optional, Union
 
-from telegram import (
-    Bot,
-    CallbackQuery,
-    Chat,
-    ChosenInlineResult,
-    InlineQuery,
-    Message,
-    PreCheckoutQuery,
-    ShippingQuery,
-    Update,
-    User,
-)
+import telegram
 from telegram.ext import CallbackContext, JobQueue, StringCommandHandler
 from tests.auxil.slots import mro_slots
 
-message = Message(1, None, Chat(1, ""), from_user=User(1, "", False), text="Text")
+message = telegram.Message(1, None, telegram.Chat(1, ""), from_user=telegram.User(1, "", False), text="Text")
 
 params = [
     {"message": message},
     {"edited_message": message},
-    {"callback_query": CallbackQuery(1, User(1, "", False), "chat", message=message)},
+    {"callback_query": telegram.CallbackQuery(1, telegram.User(1, "", False), "chat", message=message)},
     {"channel_post": message},
     {"edited_channel_post": message},
-    {"inline_query": InlineQuery(1, User(1, "", False), "", "")},
-    {"chosen_inline_result": ChosenInlineResult("id", User(1, "", False), "")},
-    {"shipping_query": ShippingQuery("id", User(1, "", False), "", None)},
-    {"pre_checkout_query": PreCheckoutQuery("id", User(1, "", False), "", 0, "")},
-    {"callback_query": CallbackQuery(1, User(1, "", False), "chat")},
+    {"inline_query": telegram.InlineQuery(1, telegram.User(1, "", False), "", "")},
+    {"chosen_inline_result": telegram.ChosenInlineResult("id", telegram.User(1, "", False), "")},
+    {"shipping_query": telegram.ShippingQuery("id", telegram.User(1, "", False), "", None)},
+    {"pre_checkout_query": telegram.PreCheckoutQuery("id", telegram.User(1, "", False), "", 0, "")},
+    {"callback_query": telegram.CallbackQuery(1, telegram.User(1, "", False), "chat")},
 ]
 
 ids = (
@@ -63,14 +36,14 @@ ids = (
     "callback_query_without_message",
 )
 
+test_flag: bool = False
 
 @pytest.fixture(scope="class", params=params, ids=ids)
 def false_update(request):
-    return Update(update_id=1, **request.param)
+    return telegram.Update(update_id=1, **request.param)
 
 
 class TestStringCommandHandler:
-    test_flag = False
 
     def test_slot_behaviour(self):
         inst = StringCommandHandler("sleepy", self.callback)
@@ -82,10 +55,11 @@ class TestStringCommandHandler:
     def _reset(self):
         self.test_flag = False
 
-    async def callback(self, update, context):
+    @pytest.mark.asyncio
+    async def callback(self, update: telegram.Update, context: CallbackContext, request: pytest.FixtureRequest) -> None:
         self.test_flag = (
             isinstance(context, CallbackContext)
-            and isinstance(context.bot, Bot)
+            and isinstance(context.bot, telegram.Bot)
             and isinstance(update, str)
             and isinstance(context.update_queue, asyncio.Queue)
             and isinstance(context.job_queue, JobQueue)
@@ -94,14 +68,18 @@ class TestStringCommandHandler:
             and isinstance(context.bot_data, dict)
         )
 
-    async def callback_args(self, update, context):
+    @pytest.mark.asyncio
+    async def callback_args(self, update: telegram.Update, context: CallbackContext, request: pytest.FixtureRequest) -> None:
         self.test_flag = context.args == ["one", "two"]
 
-    def test_other_update_types(self, false_update):
+    @pytest.mark.asyncio
+    def test_other_update_types(self, false_update: telegram.Update) -> None:
         handler = StringCommandHandler("test", self.callback)
-        assert not handler.check_update(false_update)
+        yield handler.check_update(false_update)
+        assert not self.test_flag
 
-    async def test_context(self, app):
+    @pytest.mark.asyncio
+    async def test_context(self, app: Any) -> None:
         handler = StringCommandHandler("test", self.callback)
         app.add_handler(handler)
 
@@ -109,7 +87,8 @@ class TestStringCommandHandler:
             await app.process_update("/test")
         assert self.test_flag
 
-    async def test_context_args(self, app):
+    @pytest.mark.asyncio
+    async def test_context_args(self, app: Any) -> None:
         handler = StringCommandHandler("test", self.callback_args)
         app.add_handler(handler)
 
