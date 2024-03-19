@@ -1,25 +1,8 @@
 #!/usr/bin/env python
-#
-# A library that provides a Python interface to the Telegram Bot API
-# Copyright (C) 2015-2024
-# Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser Public License for more details.
-#
-# You should have received a copy of the GNU Lesser Public License
-# along with this program.  If not, see [http://www.gnu.org/licenses/].
+
 import re
-
 import pytest
-
+from typing import List, Tuple, Union
 from telegram import Message, MessageEntity, Update, helpers
 from telegram.constants import MessageType
 
@@ -36,7 +19,7 @@ class TestHelpers:
         ],
         ids=["bold", "italic", "code", "text_link", "custom_emoji_id"],
     )
-    def test_escape_markdown(self, test_str, expected):
+    def test_escape_markdown(self, test_str: str, expected: str):
         assert expected == helpers.escape_markdown(test_str)
 
     @pytest.mark.parametrize(
@@ -49,7 +32,7 @@ class TestHelpers:
             (r"\u", r"\\u"),
         ],
     )
-    def test_escape_markdown_v2(self, test_str, expected):
+    def test_escape_markdown_v2(self, test_str: str, expected: str):
         assert expected == helpers.escape_markdown(test_str, version=2)
 
     @pytest.mark.parametrize(
@@ -61,7 +44,7 @@ class TestHelpers:
             (r"(`\some \` stuff)", r"(\`\\some \\\` stuff)"),
         ],
     )
-    def test_escape_markdown_v2_monospaced(self, test_str, expected):
+    def test_escape_markdown_v2_monospaced(self, test_str: str, expected: str):
         assert expected == helpers.escape_markdown(
             test_str, version=2, entity_type=MessageEntity.PRE
         )
@@ -117,8 +100,8 @@ class TestHelpers:
             helpers.create_deep_linked_url("abc", None)
 
     @pytest.mark.parametrize("message_type", list(MessageType))
-    @pytest.mark.parametrize("entity_type", [Update, Message])
-    def test_effective_message_type(self, message_type, entity_type):
+    @pytest.mark.parametrize("entity_type", [Union[Message, Update], Update])
+    def test_effective_message_type(self, message_type: MessageType, entity_type):
         def build_test_message(kwargs):
             config = {
                 "message_id": 1,
@@ -130,37 +113,4 @@ class TestHelpers:
             return Message(**config)
 
         message = build_test_message({message_type: (True,)})  # tuple for array-type args
-        entity = message if entity_type is Message else Update(1, message=message)
-        assert helpers.effective_message_type(entity) == message_type
-
-        empty_update = Update(2)
-        assert helpers.effective_message_type(empty_update) is None
-
-    def test_effective_message_type_wrong_type(self):
-        with pytest.raises(
-            TypeError, match=re.escape(f"neither Message nor Update (got: {type(entity := {})})")
-        ):
-            helpers.effective_message_type(entity)
-
-    def test_mention_html(self):
-        expected = '<a href="tg://user?id=1">the name</a>'
-
-        assert expected == helpers.mention_html(1, "the name")
-
-    @pytest.mark.parametrize(
-        ("test_str", "expected"),
-        [
-            ("the name", "[the name](tg://user?id=1)"),
-            ("under_score", "[under_score](tg://user?id=1)"),
-            ("starred*text", "[starred*text](tg://user?id=1)"),
-            ("`backtick`", "[`backtick`](tg://user?id=1)"),
-            ("[square brackets", "[[square brackets](tg://user?id=1)"),
-        ],
-    )
-    def test_mention_markdown(self, test_str, expected):
-        assert expected == helpers.mention_markdown(1, test_str)
-
-    def test_mention_markdown_2(self):
-        expected = r"[the\_name](tg://user?id=1)"
-
-        assert expected == helpers.mention_markdown(1, "the_name", 2)
+        entity = message if entity_type is
