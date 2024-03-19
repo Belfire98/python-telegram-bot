@@ -1,6 +1,8 @@
+.. currentmodule:: telegram
+
 Dice
 ====
 
-.. autoclass:: telegram.Dice
+.. autoclass:: Dice
     :members:
     :show-inheritance:
