@@ -1,39 +1,25 @@
-#!/usr/bin/env python
-#
-# A library that provides a Python interface to the Telegram Bot API
-# Copyright (C) 2015-2024
-# Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser Public License for more details.
-#
-# You should have received a copy of the GNU Lesser Public License
-# along with this program. If not, see [http://www.gnu.org/licenses/].
-
 import pytest
+from unittest.mock import MagicMock
 
 from telegram import WebAppData
+from telegram.bot import Bot
 from tests.auxil.slots import mro_slots
 
 
-@pytest.fixture(scope="module")
-def web_app_data():
-    return WebAppData(data=TestWebAppDataBase.data, button_text=TestWebAppDataBase.button_text)
+class TestWebAppData:
+    """Tests for the WebAppData class."""
 
-
-class TestWebAppDataBase:
     data = "data"
     button_text = "button_text"
 
+    @pytest.mark.usefixtures("bot")
+    def test_init(self, bot):
+        web_app_data = WebAppData(self.data, self.button_text, bot=bot)
 
-class TestWebAppDataWithoutRequest(TestWebAppDataBase):
+        assert web_app_data.data == self.data
+        assert web_app_data.button_text == self.button_text
+        assert web_app_data.bot == bot
+
     def test_slot_behaviour(self, web_app_data):
         for attr in web_app_data.__slots__:
             assert getattr(web_app_data, attr, "err") != "err", f"got extra slot '{attr}'"
@@ -54,7 +40,7 @@ class TestWebAppDataWithoutRequest(TestWebAppDataBase):
         assert web_app_data.data == self.data
         assert web_app_data.button_text == self.button_text
 
-    def test_equality(self):
+    def test_equality_and_hash(self, web_app_data):
         a = WebAppData(self.data, self.button_text)
         b = WebAppData(self.data, self.button_text)
         c = WebAppData("", "")
@@ -69,3 +55,18 @@ class TestWebAppDataWithoutRequest(TestWebAppDataBase):
 
         assert a != d
         assert hash(a) != hash(d)
+
+    def test_json(self, web_app_data):
+        json_str = web_app_data.json()
+
+        assert json_str == '{"data": "data", "button_text": "button_text"}'
+
+
+@pytest.fixture
+def web_app_data(bot):
+    return WebAppData(data=TestWebAppData.data, button_text=TestWebAppData.button_text, bot=bot)
+
+
+@pytest.fixture
+def bot():
+    return MagicMock(spec=Bot)
