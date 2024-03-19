@@ -1,33 +1,11 @@
 #!/usr/bin/env python
-#
-# A library that provides a Python interface to the Telegram Bot API
-# Copyright (C) 2015-2024
-# Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser Public License for more details.
-#
-# You should have received a copy of the GNU Lesser Public License
-# along with this program.  If not, see [http://www.gnu.org/licenses/].
-"""This module contains functionality used for transition warnings issued by this library.
 
-It was created to prevent circular imports that would be caused by creating the warnings
-inside warnings.py.
-
-.. versionadded:: 20.2
-"""
-from typing import Any, Callable, Type
+from typing import Any, Callable, Type, TypeVar, Union
 
 from telegram._utils.warnings import warn
 from telegram.warnings import PTBDeprecationWarning
 
+T = TypeVar('T')
 
 def build_deprecation_warning_message(
     deprecated_name: str,
@@ -45,18 +23,15 @@ def build_deprecation_warning_message(
         f"'{deprecated_name}'."
     )
 
-
-# Narrower type hints will cause linting errors and/or circular imports.
-# We'll use `Any` here and put type hints in the calling code.
 def warn_about_deprecated_arg_return_new_arg(
-    deprecated_arg: Any,
-    new_arg: Any,
+    deprecated_arg: Union[T, None],
+    new_arg: Union[T, None],
     deprecated_arg_name: str,
     new_arg_name: str,
     bot_api_version: str,
     stacklevel: int = 2,
     warn_callback: Callable[[str, Type[Warning], int], None] = warn,
-) -> Any:
+) -> T:
     """A helper function for the transition in API when argument is renamed.
 
     Checks the `deprecated_arg` and `new_arg` objects; warns if non-None `deprecated_arg` object
@@ -66,7 +41,14 @@ def warn_about_deprecated_arg_return_new_arg(
     Raises `ValueError` if both `deprecated_arg` and `new_arg` objects were passed, and they are
     different.
     """
-    if deprecated_arg and new_arg and deprecated_arg != new_arg:
+    if not isinstance(bot_api_version, str):
+        raise TypeError("bot_api_version must be a string")
+    if not isinstance(stacklevel, int):
+        raise TypeError("stacklevel must be an integer")
+    if not callable(warn_callback):
+        raise TypeError("warn_callback must be a callable")
+
+    if deprecated_arg is not None and new_arg is not None and type(deprecated_arg) != type(new_arg):
         base_message = build_deprecation_warning_message(
             deprecated_name=deprecated_arg_name,
             new_name=new_arg_name,
@@ -78,7 +60,7 @@ def warn_about_deprecated_arg_return_new_arg(
             f"{base_message}"
         )
 
-    if deprecated_arg:
+    if deprecated_arg is not None:
         warn_callback(
             f"Bot API {bot_api_version} renamed the argument '{deprecated_arg_name}' to "
             f"'{new_arg_name}'.",
@@ -88,7 +70,6 @@ def warn_about_deprecated_arg_return_new_arg(
         return deprecated_arg
 
     return new_arg
-
 
 def warn_about_deprecated_attr_in_property(
     deprecated_attr_name: str,
@@ -100,6 +81,11 @@ def warn_about_deprecated_attr_in_property(
 
     The properties replace deprecated attributes in classes and issue these deprecation warnings.
     """
+    if not isinstance(bot_api_version, str):
+        raise TypeError("bot_api_version must be a string")
+    if not isinstance(stacklevel, int):
+        raise TypeError("stacklevel must be an integer")
+
     warn(
         f"Bot API {bot_api_version} renamed the attribute '{deprecated_attr_name}' to "
         f"'{new_attr_name}'.",
