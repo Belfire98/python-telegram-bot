@@ -1,6 +1,6 @@
-FileCredentials
-===============
+.. currentmodule:: telegram
 
-.. autoclass:: telegram.FileCredentials
+.. autoclass:: FileCredentials
     :members:
+    :special-members: __init__
     :show-inheritance:
