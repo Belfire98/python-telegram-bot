@@ -1,14 +1,31 @@
-version: 2
-updates:
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "friday"
+name: Automatic Updates
+version: 1
 
-  # Updates the dependencies of the GitHub Actions workflows
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "monthly"
-      day: "friday"
+schedules:
+  - input:
+      type: weekly
+      day: friday
+    jobs:
+      pip_update:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Update pip packages
+            uses: actions/checkout@v2
+            run: |
+              pip install --upgrade pip
+              pip freeze > requirements.txt
+              pip install -r requirements.txt
+
+  - input:
+      type: monthly
+      day: friday
+    jobs:
+      github_update:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Update GitHub Actions dependencies
+            uses: actions/checkout@v2
+            run: |
+              git config --global user.email "action@github.com"
+              git config --global user.name "GitHub Action"
+              git subtree pull --prefix=.github/workflows/ ${{ github.repository }} gh-pages main --squash
