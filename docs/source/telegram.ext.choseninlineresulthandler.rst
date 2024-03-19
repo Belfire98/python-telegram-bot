@@ -1,6 +1,2 @@
-ChosenInlineResultHandler
-=========================
+from sphinx.ext.autodoc import autofunction
 
-.. autoclass:: telegram.ext.ChosenInlineResultHandler
-    :members:
-    :show-inheritance:
