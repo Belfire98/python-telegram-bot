@@ -1,6 +1,9 @@
-BaseRateLimiter
-===============
+.. currentmodule:: telegram.ext
 
-.. autoclass:: telegram.ext.BaseRateLimiter
+.. autoclass:: BaseRateLimiter
     :members:
+    :undoc-members:
     :show-inheritance:
+
+    .. automethod:: wait
+
