@@ -21,14 +21,13 @@ https://github.com/sphinx-doc/sphinx/issues/1556 is closed
 """
 import subprocess
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 
 from sphinx.util import logging
 
 # get the sphinx(!) logger
 # Makes sure logs render in red and also plays nicely with e.g. the `nitpicky` option.
 sphinx_logger = logging.getLogger(__name__)
-
 
 # must be a module-level variable so that it can be written to by the `autodoc-process-docstring`
 # event handler in `sphinx_hooks.py`
@@ -38,8 +37,12 @@ LINE_NUMBERS: Dict[str, Tuple[Path, int, int]] = {}
 def _git_branch() -> str:
     """Get's the current git sha if available or fall back to `master`"""
     try:
+        # Make sure the python-telegram-bot directory exists before trying to get the git branch
+        if not Path("python-telegram-bot").exists():
+            return "master"
+
         output = subprocess.check_output(
-            ["git", "describe", "--tags", "--always"], stderr=subprocess.STDOUT
+            ["git", "describe", "--tags", "--always"], stderr=subprocess.STDOUT, cwd=Path("python-telegram-bot")
         )
         return output.decode().strip()
     except Exception as exc:
@@ -54,7 +57,7 @@ git_branch = _git_branch()
 base_url = "https://github.com/python-telegram-bot/python-telegram-bot/blob/"
 
 
-def linkcode_resolve(_, info) -> str:
+def linkcode_resolve(_: str, info: dict) -> Optional[str]:
     """See www.sphinx-doc.org/en/master/usage/extensions/linkcode.html"""
     combined = ".".join((info["module"], info["fullname"]))
     # special casing for ExtBot which is due to the special structure of extbot.rst
@@ -67,7 +70,7 @@ def linkcode_resolve(_, info) -> str:
         line_info = LINE_NUMBERS.get(f"{combined.rsplit('.', 1)[0]}.__init__")
     if not line_info:
         # Try the class
-        line_info = LINE_NUMBERS.get(f"{combined.rsplit('.', 1)[0]}")
+        line_info = LINE_NUMBERS.get(combined.rsplit(".", 1)[0])
     if not line_info:
         # Try the module
         line_info = LINE_NUMBERS.get(info["module"])
@@ -76,4 +79,11 @@ def linkcode_resolve(_, info) -> str:
         return None
 
     file, start_line, end_line = line_info
-    return f"{base_url}{git_branch}/{file}#L{start_line}-L{end_line}"
+    # Make sure the line number is not None before returning the final URL
+    if start_line is not None:
+        return f"{base_url}{git_branch}/{file}#L{start_line}-L{end_line}"
+    return None
+
+
+if __name__ == "__main__":
+    print(linkcode_resolve("", {"module": "path.to.module", "full
