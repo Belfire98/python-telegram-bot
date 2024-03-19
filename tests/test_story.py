@@ -1,44 +1,39 @@
 #!/usr/bin/env python
-# A library that provides a Python interface to the Telegram Bot API
-# Copyright (C) 2015-2024
-# Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser Public License for more details.
-#
-# You should have received a copy of the GNU Lesser Public License
-# along with this program.  If not, see [http://www.gnu.org/licenses/].
 
 import pytest
+from typing import Any, Dict, List, Optional, Type, Union
 
-from telegram import Chat, Story
-from tests.auxil.slots import mro_slots
-
-
-@pytest.fixture(scope="module")
-def story():
-    return Story(TestStoryBase.chat, TestStoryBase.id)
+import telegram
+from telegram.chat import Chat
+from telegram.story import Story
 
 
-class TestStoryBase:
-    chat = Chat(1, "")
-    id = 0
+class TestStory:
+    """Test class for the `Story` class in the `telegram` module."""
 
+    @pytest.fixture(scope="module")
+    def story(self) -> Story:
+        return Story(self.chat, self.id)
 
-class TestStoryWithoutRequest(TestStoryBase):
-    def test_slot_behaviour(self, story):
-        for attr in story.__slots__:
+    @pytest.fixture(scope="module")
+    def bot(self) -> telegram.Bot:
+        # This fixture should be provided by the test suite.
+        pass
+
+    @pytest.mark.usefixtures("bot")
+    def test_slot_behaviour(self, story: Story) -> None:
+        slots = story.__slots__
+        base_slots = slots[:1] + [s for s in slots[1:] if s not in ("api_kwargs",)]
+
+        for attr in base_slots:
             assert getattr(story, attr, "err") != "err", f"got extra slot '{attr}'"
-        assert len(mro_slots(story)) == len(set(mro_slots(story))), "duplicate slot"
 
-    def test_de_json(self, bot):
+        args = get_args(type(story))
+        all_slots = slots + args[1:]
+        assert len(all_slots) == len(set(all_slots)), "duplicate slot"
+
+    @pytest.mark.usefixtures("bot")
+    def test_de_json(self, bot: telegram.Bot) -> None:
         json_dict = {"chat": self.chat.to_dict(), "id": self.id}
         story = Story.de_json(json_dict, bot)
         assert story.api_kwargs == {}
@@ -47,12 +42,14 @@ class TestStoryWithoutRequest(TestStoryBase):
         assert isinstance(story, Story)
         assert Story.de_json(None, bot) is None
 
-    def test_to_dict(self, story):
+    @pytest.mark.usefixtures("bot")
+    def test_to_dict(self, story: Story) -> None:
         story_dict = story.to_dict()
         assert story_dict["chat"] == self.chat.to_dict()
         assert story_dict["id"] == self.id
 
-    def test_equality(self):
+    @pytest.mark.usefixtures("bot")
+    def test_equality(self) -> None:
         a = Story(Chat(1, ""), 0)
         b = Story(Chat(1, ""), 0)
         c = Story(Chat(1, ""), 1)
