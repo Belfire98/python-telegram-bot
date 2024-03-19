@@ -1,50 +1,30 @@
 #!/usr/bin/env python
-#
-# A library that provides a Python interface to the Telegram Bot API
-# Copyright (C) 2015-2024
-# Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser Public License for more details.
-#
-# You should have received a copy of the GNU Lesser Public License
-# along with this program.  If not, see [http://www.gnu.org/licenses/].
-"""This module contains an object that represents a Telegram Contact."""
-from typing import Optional
 
+from typing import Optional, Dict, Any, TypeVar, Union
 from telegram._telegramobject import TelegramObject
 from telegram._utils.types import JSONDict
 
+T = TypeVar('T', bound='Contact')
 
 class Contact(TelegramObject):
-    """This object represents a phone contact.
-
-    Objects of this class are comparable in terms of equality. Two objects of this class are
-    considered equal, if their :attr:`phone_number` is equal.
+    """
+    This object represents a phone contact.
 
     Args:
-        phone_number (:obj:`str`): Contact's phone number.
-        first_name (:obj:`str`): Contact's first name.
-        last_name (:obj:`str`, optional): Contact's last name.
-        user_id (:obj:`int`, optional): Contact's user identifier in Telegram.
-        vcard (:obj:`str`, optional): Additional data about the contact in the form of a vCard.
+        phone_number (str): Contact's phone number.
+        first_name (str): Contact's first name.
+        last_name (Optional[str]): Contact's last name.
+        user_id (Optional[int]): Contact's user identifier in Telegram.
+        vcard (Optional[str]): Additional data about the contact in the form of a vCard.
 
     Attributes:
-        phone_number (:obj:`str`): Contact's phone number.
-        first_name (:obj:`str`): Contact's first name.
-        last_name (:obj:`str`): Optional. Contact's last name.
-        user_id (:obj:`int`): Optional. Contact's user identifier in Telegram.
-        vcard (:obj:`str`): Optional. Additional data about the contact in the form of a vCard.
+        phone_number (str): Contact's phone number.
+        first_name (str): Contact's first name.
+        last_name (Optional[str]): Contact's last name.
+        user_id (Optional[int]): Contact's user identifier in Telegram.
+        vcard (Optional[str]): Additional data about the contact in the form of a vCard.
 
     """
-
     __slots__ = ("first_name", "last_name", "phone_number", "user_id", "vcard")
 
     def __init__(
@@ -69,3 +49,36 @@ class Contact(TelegramObject):
         self._id_attrs = (self.phone_number,)
 
         self._freeze()
+
+    @classmethod
+    def de_json(cls: type[T], json_dict: JSONDict, **kwargs: Any) -> T:
+        """
+        Creates a new Contact object from a JSON dictionary.
+
+        Args:
+            json_dict (JSONDict): A dictionary with the JSON encoding of the object.
+
+        Returns:
+            A new Contact object.
+
+        """
+        return cls(
+            phone_number=json_dict['phone_number'],
+            first_name=json_dict['first_name'],
+            last_name=json_dict.get('last_name'),
+            user_id=json_dict.get('user_id'),
+            vcard=json_dict.get('vcard'),
+            api_kwargs=kwargs,
+        )
+
+    def __str__(self) -> str:
+        """
+        Returns a human-readable representation of the object.
+
+        Returns:
+            A string with the object's attributes.
+
+        """
+        return f'Contact(phone_number={self.phone_number}, first_name={self.first_name}, ' \
+               f'last_name={self.last_name}, user_id={self.user_id}, vcard={self.vcard})'
+
