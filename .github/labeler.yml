@@ -1,9 +1,14 @@
-# Config file for workflows/labelling.yml
+# Config file for workflows/labeling.yml
 
 version: 1
 
 labels:
-- label: "dependencies"
-  authors: ["dependabot[bot]", "pre-commit-ci[bot]"]
-- label: "code quality ✨"
-  authors: ["pre-commit-ci[bot]"]
+  - name: dependencies
+    description: "Labels issues related to dependencies"
+    color: d73a4a
+    authors:
+      - dependabot[bot]
+      - pre-commit-ci[bot]
+
+  - name: code-quality
+
