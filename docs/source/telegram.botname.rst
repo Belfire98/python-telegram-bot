@@ -1,6 +1,6 @@
-BotName
-=======
+Bot (telegram.Bot)
+=================
 
-.. autoclass:: telegram.BotName
+.. autoclass:: telegram.Bot
     :members:
     :show-inheritance:
