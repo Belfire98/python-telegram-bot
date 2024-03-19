@@ -1,28 +1,5 @@
 #!/usr/bin/env python
-#
-# A library that provides a Python interface to the Telegram Bot API
-# Copyright (C) 2015-2024
-# Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser Public License for more details.
-#
-# You should have received a copy of the GNU Lesser Public License
-# along with this program.  If not, see [http://www.gnu.org/licenses/].
-"""This module contains helper functions related to enums.
 
-Warning:
-    Contents of this module are intended to be used internally by the library and *not* by the
-    user. Changes to this module are not considered breaking changes and may not be documented in
-    the changelog.
-"""
 import enum as _enum
 import sys
 from typing import Type, TypeVar, Union
@@ -42,9 +19,6 @@ def get_member(enum_cls: Type[_Enum], value: _A, default: _B) -> Union[_Enum, _A
         return default
 
 
-# Python 3.11 and above has a different output for mixin classes for IntEnum, StrEnum and IntFlag
-# see https://docs.python.org/3.11/library/enum.html#notes. We want e.g. str(StrEnumTest.FOO) to
-# return "foo" instead of "StrEnumTest.FOO", which is not the case < py3.11
 class StringEnum(str, _enum.Enum):
     """Helper class for string enums where ``str(member)`` prints the value, but ``repr(member)``
     gives ``EnumName.MEMBER_NAME``.
@@ -53,13 +27,26 @@ class StringEnum(str, _enum.Enum):
     __slots__ = ()
 
     def __repr__(self) -> str:
+        """Returns a string representation of the enum member in the format:
+        ``<EnumName.MEMBER_NAME>``.
+        """
         return f"<{self.__class__.__name__}.{self.name}>"
 
     def __str__(self) -> str:
-        return str.__str__(self)
+        """Returns the value of the enum member as a string."""
+        return str(self)
+
+    def __eq__(self, other: object) -> bool:
+        """Compares the enum member with another object for equality."""
+        if isinstance(other, str):
+            return self.value == other
+        return super().__eq__(other)
+
+    def __hash__(self) -> int:
+        """Returns the hash value of the enum member."""
+        return hash(self.value)
 
 
-# Apply the __repr__ modification and __str__ fix to IntEnum
 class IntEnum(_enum.IntEnum):
     """Helper class for int enums where ``str(member)`` prints the value, but ``repr(member)``
     gives ``EnumName.MEMBER_NAME``.
@@ -68,9 +55,23 @@ class IntEnum(_enum.IntEnum):
     __slots__ = ()
 
     def __repr__(self) -> str:
+        """Returns a string representation of the enum member in the format:
+        ``<EnumName.MEMBER_NAME>``.
+        """
         return f"<{self.__class__.__name__}.{self.name}>"
 
-    if sys.version_info < (3, 11):
-
-        def __str__(self) -> str:
+    def __str__(self) -> str:
+        """Returns the value of the enum member as a string."""
+        if sys.version_info < (3, 11):
             return str(self.value)
+        return super().__str__()
+
+    def __eq__(self, other: object) -> bool:
+        """Compares the enum member with another object for equality."""
+        if isinstance(other, int):
+            return self.value == other
+        return super().__eq__(other)
+
+    def __hash__(self) -> int:
+        """Returns the hash value of the enum member."""
+        return hash(self.value)
