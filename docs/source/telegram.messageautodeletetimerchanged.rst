@@ -1,6 +1,23 @@
-MessageAutoDeleteTimerChanged
-=============================
+# conf.py
+extensions = ['sphinx.ext.napoleon']
 
-.. autoclass:: telegram.MessageAutoDeleteTimerChanged
+
+.. currentmodule:: telegram
+
+.. autoclass:: MessageAutoDeleteTimerChanged
     :members:
+    :undoc-members:
+    :inherited-members:
     :show-inheritance:
+
+    .. automethod:: __init__
+
+    .. rubric:: Attributes
+
+    .. autosummary::
+       :toctree: .
+
+       from_user
+       message
+       chat
+       duration
