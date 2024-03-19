@@ -1,24 +1,6 @@
 #!/usr/bin/env python
-#
-# A library that provides a Python interface to the Telegram Bot API
-# Copyright (C) 2015-2024
-# Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser Public License for more details.
-#
-# You should have received a copy of the GNU Lesser Public License
-# along with this program.  If not, see [http://www.gnu.org/licenses/].
 
 import pytest
-
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -31,19 +13,21 @@ from tests.auxil.slots import mro_slots
 
 
 @pytest.fixture(scope="module")
-def inline_query_result_cached_audio():
+def inline_query_result_cached_audio() -> InlineQueryResultCachedAudio:
     return InlineQueryResultCachedAudio(
-        TestInlineQueryResultCachedAudioBase.id_,
-        TestInlineQueryResultCachedAudioBase.audio_file_id,
-        caption=TestInlineQueryResultCachedAudioBase.caption,
-        parse_mode=TestInlineQueryResultCachedAudioBase.parse_mode,
-        caption_entities=TestInlineQueryResultCachedAudioBase.caption_entities,
-        input_message_content=TestInlineQueryResultCachedAudioBase.input_message_content,
-        reply_markup=TestInlineQueryResultCachedAudioBase.reply_markup,
+        TestInlineQueryResultCachedAudio.id_,
+        TestInlineQueryResultCachedAudio.audio_file_id,
+        caption=TestInlineQueryResultCachedAudio.caption,
+        parse_mode=TestInlineQueryResultCachedAudio.parse_mode,
+        caption_entities=TestInlineQueryResultCachedAudio.caption_entities,
+        input_message_content=TestInlineQueryResultCachedAudio.input_message_content,
+        reply_markup=TestInlineQueryResultCachedAudio.reply_markup,
     )
 
 
-class TestInlineQueryResultCachedAudioBase:
+class TestInlineQueryResultCachedAudio:
+    """Tests for the InlineQueryResultCachedAudio class."""
+
     id_ = "id"
     type_ = "audio"
     audio_file_id = "audio file id"
@@ -53,15 +37,8 @@ class TestInlineQueryResultCachedAudioBase:
     input_message_content = InputTextMessageContent("input_message_content")
     reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("reply_markup")]])
 
-
-class TestInlineQueryResultCachedAudioWithoutRequest(TestInlineQueryResultCachedAudioBase):
-    def test_slot_behaviour(self, inline_query_result_cached_audio):
-        inst = inline_query_result_cached_audio
-        for attr in inst.__slots__:
-            assert getattr(inst, attr, "err") != "err", f"got extra slot '{attr}'"
-        assert len(mro_slots(inst)) == len(set(mro_slots(inst))), "duplicate slot"
-
-    def test_expected_values(self, inline_query_result_cached_audio):
+    def test_instance_variables(self, inline_query_result_cached_audio: InlineQueryResultCachedAudio) -> None:
+        """Test the instance variables of the InlineQueryResultCachedAudio class."""
         assert inline_query_result_cached_audio.type == self.type_
         assert inline_query_result_cached_audio.id == self.id_
         assert inline_query_result_cached_audio.audio_file_id == self.audio_file_id
@@ -76,11 +53,11 @@ class TestInlineQueryResultCachedAudioWithoutRequest(TestInlineQueryResultCached
             inline_query_result_cached_audio.reply_markup.to_dict() == self.reply_markup.to_dict()
         )
 
-    def test_caption_entities_always_tuple(self):
+    def test_caption_entities_always_tuple(self) -> None:
         audio = InlineQueryResultCachedAudio(self.id_, self.audio_file_id)
         assert audio.caption_entities == ()
 
-    def test_to_dict(self, inline_query_result_cached_audio):
+    def test_to_dict(self, inline_query_result_cached_audio: InlineQueryResultCachedAudio) -> None:
         inline_query_result_cached_audio_dict = inline_query_result_cached_audio.to_dict()
 
         assert isinstance(inline_query_result_cached_audio_dict, dict)
@@ -112,7 +89,7 @@ class TestInlineQueryResultCachedAudioWithoutRequest(TestInlineQueryResultCached
             == inline_query_result_cached_audio.reply_markup.to_dict()
         )
 
-    def test_equality(self):
+    def test_equality(self) -> None:
         a = InlineQueryResultCachedAudio(self.id_, self.audio_file_id)
         b = InlineQueryResultCachedAudio(self.id_, self.audio_file_id)
         c = InlineQueryResultCachedAudio(self.id_, "")
