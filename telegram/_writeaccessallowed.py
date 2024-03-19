@@ -1,27 +1,9 @@
 #!/usr/bin/env python
-#
-# A library that provides a Python interface to the Telegram Bot API
-# Copyright (C) 2015-2024
-# Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser Public License for more details.
-#
-# You should have received a copy of the GNU Lesser Public License
-# along with this program.  If not, see [http://www.gnu.org/licenses/].
-"""This module contains objects related to the write access allowed service message."""
-from typing import Optional
+
+from typing import Any, Dict, Optional
 
 from telegram._telegramobject import TelegramObject
 from telegram._utils.types import JSONDict
-
 
 class WriteAccessAllowed(TelegramObject):
     """
@@ -43,14 +25,17 @@ class WriteAccessAllowed(TelegramObject):
 
             .. versionadded:: 20.3
         from_request (:obj:`bool`, optional): :obj:`True`, if the access was granted after the user
-         accepted an explicit request from a Web App sent by the method
-         `requestWriteAccess <https://core.telegram.org/bots/webapps#initializing-mini-apps>`_.
+            accepted an explicit request from a Web App.
 
-         .. versionadded:: 20.6
+            .. versionadded:: 20.6
         from_attachment_menu (:obj:`bool`, optional): :obj:`True`, if the access was granted when
-         the bot was added to the attachment or side menu.
+            the bot was added to the attachment or side menu.
 
-         .. versionadded:: 20.6
+            .. versionadded:: 20.6
+        from_link (:obj:`bool`, optional): :obj:`True`, if the access was granted from a link.
+
+            .. versionadded:: 20.8
+        api_kwargs (:obj:`dict`, optional): Additional API keywords arguments.
 
     Attributes:
         web_app_name (:obj:`str`): Optional. Name of the Web App, if the access was granted when
@@ -65,16 +50,20 @@ class WriteAccessAllowed(TelegramObject):
             the bot was added to the attachment or side menu.
 
             .. versionadded:: 20.6
+        from_link (:obj:`bool`): Optional. :obj:`True`, if the access was granted from a link.
+
+            .. versionadded:: 20.8
 
     """
 
-    __slots__ = ("from_attachment_menu", "from_request", "web_app_name")
+    __slots__ = ("from_attachment_menu", "from_link", "from_request", "web_app_name")
 
     def __init__(
         self,
         web_app_name: Optional[str] = None,
         from_request: Optional[bool] = None,
         from_attachment_menu: Optional[bool] = None,
+        from_link: Optional[bool] = None,
         *,
         api_kwargs: Optional[JSONDict] = None,
     ):
@@ -82,7 +71,12 @@ class WriteAccessAllowed(TelegramObject):
         self.web_app_name: Optional[str] = web_app_name
         self.from_request: Optional[bool] = from_request
         self.from_attachment_menu: Optional[bool] = from_attachment_menu
+        self.from_link: Optional[bool] = from_link
 
         self._id_attrs = (self.web_app_name,)
 
         self._freeze()
+
+    def __repr__(self) -> str:
+        attrs = [f"{k}={repr(v)}" for k, v in self.__dict__.items() if v is not None]
+        return f"{self.__class__.__name__}({', '.join(attrs)})"
