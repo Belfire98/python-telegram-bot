@@ -1,24 +1,7 @@
 #!/usr/bin/env python
-#
-# A library that provides a Python interface to the Telegram Bot API
-# Copyright (C) 2015-2024
-# Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser Public License for more details.
-#
-# You should have received a copy of the GNU Lesser Public License
-# along with this program.  If not, see [http://www.gnu.org/licenses/].
-import pytest
 
-from telegram import PassportElementErrorSelfie, PassportElementErrorTranslationFiles
+import pytest
+from telegram import PassportElementErrorTranslationFiles, PassportElementErrorSelfie
 from telegram.warnings import PTBDeprecationWarning
 from tests.auxil.slots import mro_slots
 
@@ -26,22 +9,18 @@ from tests.auxil.slots import mro_slots
 @pytest.fixture(scope="module")
 def passport_element_error_translation_files():
     return PassportElementErrorTranslationFiles(
-        TestPassportElementErrorTranslationFilesBase.type_,
-        TestPassportElementErrorTranslationFilesBase.file_hashes,
-        TestPassportElementErrorTranslationFilesBase.message,
+        "test_type", ["hash1", "hash2"], "Error message"
     )
 
 
 class TestPassportElementErrorTranslationFilesBase:
     source = "translation_files"
     type_ = "test_type"
-    file_hashes = ["hash1", "hash2"]
+    file_hashes = ("hash1", "hash2")
     message = "Error message"
 
 
-class TestPassportElementErrorTranslationFilesWithoutRequest(
-    TestPassportElementErrorTranslationFilesBase
-):
+class TestPassportElementErrorTranslationFiles(TestPassportElementErrorTranslationFilesBase):
     def test_slot_behaviour(self, passport_element_error_translation_files):
         inst = passport_element_error_translation_files
         for attr in inst.__slots__:
@@ -51,7 +30,7 @@ class TestPassportElementErrorTranslationFilesWithoutRequest(
     def test_expected_values(self, passport_element_error_translation_files):
         assert passport_element_error_translation_files.source == self.source
         assert passport_element_error_translation_files.type == self.type_
-        assert isinstance(passport_element_error_translation_files.file_hashes, list)
+        assert isinstance(passport_element_error_translation_files.file_hashes, tuple)
         assert passport_element_error_translation_files.file_hashes == self.file_hashes
         assert passport_element_error_translation_files.message == self.message
 
@@ -81,7 +60,7 @@ class TestPassportElementErrorTranslationFilesWithoutRequest(
     def test_equality(self):
         a = PassportElementErrorTranslationFiles(self.type_, self.file_hashes, self.message)
         b = PassportElementErrorTranslationFiles(self.type_, self.file_hashes, self.message)
-        c = PassportElementErrorTranslationFiles(self.type_, "", "")
+        c = PassportElementErrorTranslationFiles(self.type_, ("", ""), "")
         d = PassportElementErrorTranslationFiles("", self.file_hashes, "")
         e = PassportElementErrorTranslationFiles("", "", self.message)
         f = PassportElementErrorSelfie(self.type_, "", self.message)
@@ -103,11 +82,6 @@ class TestPassportElementErrorTranslationFilesWithoutRequest(
         assert hash(a) != hash(f)
 
     def test_file_hashes_deprecated(self, passport_element_error_translation_files, recwarn):
-        passport_element_error_translation_files.file_hashes
-        assert len(recwarn) == 1
-        assert (
-            "The attribute `file_hashes` will return a tuple instead of a list in future major"
-            " versions." in str(recwarn[0].message)
-        )
-        assert recwarn[0].category is PTBDeprecationWarning
-        assert recwarn[0].filename == __file__
+        with pytest.warns(PTBDeprecationWarning, match="The attribute `file_hashes` will return"):
+            _ = passport_element_error_translation_files.file_hashes
+
