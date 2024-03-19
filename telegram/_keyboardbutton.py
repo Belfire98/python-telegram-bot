@@ -1,27 +1,12 @@
 #!/usr/bin/env python
-#
-# A library that provides a Python interface to the Telegram Bot API
-# Copyright (C) 2015-2024
-# Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser Public License for more details.
-#
-# You should have received a copy of the GNU Lesser Public License
-# along with this program.  If not, see [http://www.gnu.org/licenses/].
-"""This module contains an object that represents a Telegram KeyboardButton."""
 
-from typing import TYPE_CHECKING, Optional
+from typing import Any, ClassVar, Optional
 
 from telegram._keyboardbuttonpolltype import KeyboardButtonPollType
-from telegram._keyboardbuttonrequest import KeyboardButtonRequestChat, KeyboardButtonRequestUsers
+from telegram._keyboardbuttonrequest import (
+    KeyboardButtonRequestChat,
+    KeyboardButtonRequestUsers,
+)
 from telegram._telegramobject import TelegramObject
 from telegram._utils.types import JSONDict
 from telegram._webappinfo import WebAppInfo
@@ -62,127 +47,56 @@ class KeyboardButton(TelegramObject):
        comparing objects of this type in terms of equality.
 
     Args:
-        text (:obj:`str`): Text of the button. If none of the optional fields are used, it will be
+        text (str): Text of the button. If none of the optional fields are used, it will be
             sent to the bot as a message when the button is pressed.
-        request_contact (:obj:`bool`, optional): If :obj:`True`, the user's phone number will be
+        request_contact (bool, optional): If True, the user's phone number will be
             sent as a contact when the button is pressed. Available in private chats only.
-        request_location (:obj:`bool`, optional): If :obj:`True`, the user's current location will
+        request_location (bool, optional): If True, the user's current location will
             be sent when the button is pressed. Available in private chats only.
-        request_poll (:class:`~telegram.KeyboardButtonPollType`, optional): If specified, the user
+        request_poll (KeyboardButtonPollType, optional): If specified, the user
             will be asked to create a poll and send it to the bot when the button is pressed.
             Available in private chats only.
-        web_app (:class:`~telegram.WebAppInfo`, optional): If specified, the described `Web App
+        web_app (WebAppInfo, optional): If specified, the described `Web App
             <https://core.telegram.org/bots/webapps>`_ will be launched when the button is pressed.
             The Web App will be able to send a :attr:`Message.web_app_data` service message.
             Available in private chats only.
 
             .. versionadded:: 20.0
 
-        request_users (:class:`KeyboardButtonRequestUsers`, optional): If specified, pressing the
+        request_users (KeyboardButtonRequestUsers, optional): If specified, pressing the
             button will open a list of suitable users. Tapping on any user will send its
             identifier to the bot in a :attr:`telegram.Message.users_shared` service message.
             Available in private chats only.
 
             .. versionadded:: 20.8
-        request_chat (:class:`KeyboardButtonRequestChat`, optional): If specified, pressing the
+        request_chat (KeyboardButtonRequestChat, optional): If specified, pressing the
             button will open a list of suitable chats. Tapping on a chat will send its
             identifier to the bot in a :attr:`telegram.Message.chat_shared` service message.
             Available in private chats only.
 
             .. versionadded:: 20.1
     Attributes:
-        text (:obj:`str`): Text of the button. If none of the optional fields are used, it will be
+        text (str): Text of the button. If none of the optional fields are used, it will be
             sent to the bot as a message when the button is pressed.
-        request_contact (:obj:`bool`): Optional. If :obj:`True`, the user's phone number will be
+        request_contact (bool): Optional. If True, the user's phone number will be
             sent as a contact when the button is pressed. Available in private chats only.
-        request_location (:obj:`bool`): Optional. If :obj:`True`, the user's current location will
+        request_location (bool): Optional. If True, the user's current location will
             be sent when the button is pressed. Available in private chats only.
-        request_poll (:class:`~telegram.KeyboardButtonPollType`): Optional. If specified,
+        request_poll (KeyboardButtonPollType): Optional. If specified,
             the user will be asked to create a poll and send it to the bot when the button is
             pressed. Available in private chats only.
-        web_app (:class:`~telegram.WebAppInfo`): Optional. If specified, the described `Web App
-            <https://core.telegram.org/bots/webapps>`_ will be launched when the button is pressed.
-            The Web App will be able to send a :attr:`Message.web_app_data` service message.
+        web_app (WebAppInfo): Optional. If specified, the described `Web App
+            <https>`_ will be launched when the button is pressed. The Web App will be able to
+            send a :attr:`Message.web_app_data` service message.
             Available in private chats only.
 
             .. versionadded:: 20.0
-        request_users (:class:`KeyboardButtonRequestUsers`): Optional. If specified, pressing the
+        request_users (KeyboardButtonRequestUsers): Optional. If specified, pressing the
             button will open a list of suitable users. Tapping on any user will send its
             identifier to the bot in a :attr:`telegram.Message.users_shared` service message.
             Available in private chats only.
 
             .. versionadded:: 20.8
-        request_chat (:class:`KeyboardButtonRequestChat`): Optional. If specified, pressing the
+        request_chat (KeyboardButtonRequestChat): Optional. If specified, pressing the
             button will open a list of suitable chats. Tapping on a chat will send its
-            identifier to the bot in a :attr:`telegram.Message.chat_shared` service message.
-            Available in private chats only.
-
-            .. versionadded:: 20.1
-    """
-
-    __slots__ = (
-        "request_chat",
-        "request_contact",
-        "request_location",
-        "request_poll",
-        "request_users",
-        "text",
-        "web_app",
-    )
-
-    def __init__(
-        self,
-        text: str,
-        request_contact: Optional[bool] = None,
-        request_location: Optional[bool] = None,
-        request_poll: Optional[KeyboardButtonPollType] = None,
-        web_app: Optional[WebAppInfo] = None,
-        request_chat: Optional[KeyboardButtonRequestChat] = None,
-        request_users: Optional[KeyboardButtonRequestUsers] = None,
-        *,
-        api_kwargs: Optional[JSONDict] = None,
-    ):
-        super().__init__(api_kwargs=api_kwargs)
-
-        # Required
-        self.text: str = text
-        # Optionals
-        self.request_contact: Optional[bool] = request_contact
-        self.request_location: Optional[bool] = request_location
-        self.request_poll: Optional[KeyboardButtonPollType] = request_poll
-        self.web_app: Optional[WebAppInfo] = web_app
-        self.request_users: Optional[KeyboardButtonRequestUsers] = request_users
-        self.request_chat: Optional[KeyboardButtonRequestChat] = request_chat
-
-        self._id_attrs = (
-            self.text,
-            self.request_contact,
-            self.request_location,
-            self.request_poll,
-            self.web_app,
-            self.request_users,
-            self.request_chat,
-        )
-
-        self._freeze()
-
-    @classmethod
-    def de_json(cls, data: Optional[JSONDict], bot: "Bot") -> Optional["KeyboardButton"]:
-        """See :meth:`telegram.TelegramObject.de_json`."""
-        data = cls._parse_data(data)
-
-        if not data:
-            return None
-
-        data["request_poll"] = KeyboardButtonPollType.de_json(data.get("request_poll"), bot)
-        data["request_users"] = KeyboardButtonRequestUsers.de_json(data.get("request_users"), bot)
-        data["request_chat"] = KeyboardButtonRequestChat.de_json(data.get("request_chat"), bot)
-        data["web_app"] = WebAppInfo.de_json(data.get("web_app"), bot)
-
-        api_kwargs = {}
-        # This is a deprecated field that TG still returns for backwards compatibility
-        # Let's filter it out to speed up the de-json process
-        if request_user := data.get("request_user"):
-            api_kwargs = {"request_user": request_user}
-
-        return super()._de_json(data=data, bot=bot, api_kwargs=api_kwargs)
+            identifier to the bot in a :attr:`telegram.Message.chat_shared` service
