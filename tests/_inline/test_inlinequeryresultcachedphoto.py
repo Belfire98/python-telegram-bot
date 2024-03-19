@@ -1,23 +1,6 @@
 #!/usr/bin/env python
-#
-# A library that provides a Python interface to the Telegram Bot API
-# Copyright (C) 2015-2024
-# Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser Public License for more details.
-#
-# You should have received a copy of the GNU Lesser Public License
-# along with this program.  If not, see [http://www.gnu.org/licenses/].
-import pytest
 
+import pytest
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -29,22 +12,9 @@ from telegram import (
 from tests.auxil.slots import mro_slots
 
 
-@pytest.fixture(scope="module")
-def inline_query_result_cached_photo():
-    return InlineQueryResultCachedPhoto(
-        TestInlineQueryResultCachedPhotoBase.id_,
-        TestInlineQueryResultCachedPhotoBase.photo_file_id,
-        title=TestInlineQueryResultCachedPhotoBase.title,
-        description=TestInlineQueryResultCachedPhotoBase.description,
-        caption=TestInlineQueryResultCachedPhotoBase.caption,
-        parse_mode=TestInlineQueryResultCachedPhotoBase.parse_mode,
-        caption_entities=TestInlineQueryResultCachedPhotoBase.caption_entities,
-        input_message_content=TestInlineQueryResultCachedPhotoBase.input_message_content,
-        reply_markup=TestInlineQueryResultCachedPhotoBase.reply_markup,
-    )
+class TestInlineQueryResultCachedPhoto:
+    """Tests for InlineQueryResultCachedPhoto class."""
 
-
-class TestInlineQueryResultCachedPhotoBase:
     id_ = "id"
     type_ = "photo"
     photo_file_id = "photo file id"
@@ -56,32 +26,68 @@ class TestInlineQueryResultCachedPhotoBase:
     input_message_content = InputTextMessageContent("input_message_content")
     reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("reply_markup")]])
 
+    @pytest.fixture(scope="module")
+    def inline_query_result_cached_photo(self):
+        return InlineQueryResultCachedPhoto(
+            self.id_,
+            self.photo_file_id,
+            title=self.title,
+            description=self.description,
+            caption=self.caption,
+            parse_mode=self.parse_mode,
+            caption_entities=self.caption_entities,
+            input_message_content=self.input_message_content,
+            reply_markup=self.reply_markup,
+        )
 
-class TestInlineQueryResultCachedPhotoWithoutRequest(TestInlineQueryResultCachedPhotoBase):
     def test_slot_behaviour(self, inline_query_result_cached_photo):
         inst = inline_query_result_cached_photo
         for attr in inst.__slots__:
             assert getattr(inst, attr, "err") != "err", f"got extra slot '{attr}'"
         assert len(mro_slots(inst)) == len(set(mro_slots(inst))), "duplicate slot"
 
-    def test_expected_values(self, inline_query_result_cached_photo):
-        assert inline_query_result_cached_photo.type == self.type_
-        assert inline_query_result_cached_photo.id == self.id_
-        assert inline_query_result_cached_photo.photo_file_id == self.photo_file_id
-        assert inline_query_result_cached_photo.title == self.title
-        assert inline_query_result_cached_photo.description == self.description
-        assert inline_query_result_cached_photo.caption == self.caption
-        assert inline_query_result_cached_photo.parse_mode == self.parse_mode
-        assert inline_query_result_cached_photo.caption_entities == tuple(self.caption_entities)
-        assert (
-            inline_query_result_cached_photo.input_message_content.to_dict()
-            == self.input_message_content.to_dict()
-        )
-        assert (
-            inline_query_result_cached_photo.reply_markup.to_dict() == self.reply_markup.to_dict()
-        )
+    @pytest.mark.parametrize(
+        "attributes,expected_values",
+        [
+            (
+                ["type", "id", "photo_file_id", "title", "description"],
+                {
+                    "type": type_.type_,
+                    "id": id_,
+                    "photo_file_id": photo_file_id,
+                    "title": title,
+                    "description": description,
+                },
+            ),
+            (
+                ["caption", "parse_mode", "caption_entities"],
+                {
+                    "caption": caption,
+                    "parse_mode": parse_mode,
+                    "caption_entities": tuple(caption_entities),
+                },
+            ),
+            (
+                ["input_message_content"],
+                {
+                    "input_message_content": input_message_content.to_dict(),
+                },
+            ),
+            (
+                ["reply_markup"],
+                {
+                    "reply_markup": reply_markup.to_dict(),
+                },
+            ),
+        ],
+    )
+    def test_expected_values(
+        self, inline_query_result_cached_photo, attributes, expected_values
+    ):
+        for attr in attributes:
+            assert getattr(inline_query_result_cached_photo, attr) == expected_values[attr]
 
-    def test_caption_entities_always_tuple(self):
+    def test_caption_entities_always_tuple(self, inline_query_result_cached_photo):
         result = InlineQueryResultCachedPhoto(self.id_, self.photo_file_id)
         assert result.caption_entities == ()
 
@@ -89,41 +95,11 @@ class TestInlineQueryResultCachedPhotoWithoutRequest(TestInlineQueryResultCached
         inline_query_result_cached_photo_dict = inline_query_result_cached_photo.to_dict()
 
         assert isinstance(inline_query_result_cached_photo_dict, dict)
-        assert (
-            inline_query_result_cached_photo_dict["type"] == inline_query_result_cached_photo.type
-        )
-        assert inline_query_result_cached_photo_dict["id"] == inline_query_result_cached_photo.id
-        assert (
-            inline_query_result_cached_photo_dict["photo_file_id"]
-            == inline_query_result_cached_photo.photo_file_id
-        )
-        assert (
-            inline_query_result_cached_photo_dict["title"]
-            == inline_query_result_cached_photo.title
-        )
-        assert (
-            inline_query_result_cached_photo_dict["description"]
-            == inline_query_result_cached_photo.description
-        )
-        assert (
-            inline_query_result_cached_photo_dict["caption"]
-            == inline_query_result_cached_photo.caption
-        )
-        assert (
-            inline_query_result_cached_photo_dict["parse_mode"]
-            == inline_query_result_cached_photo.parse_mode
-        )
-        assert inline_query_result_cached_photo_dict["caption_entities"] == [
-            ce.to_dict() for ce in inline_query_result_cached_photo.caption_entities
-        ]
-        assert (
-            inline_query_result_cached_photo_dict["input_message_content"]
-            == inline_query_result_cached_photo.input_message_content.to_dict()
-        )
-        assert (
-            inline_query_result_cached_photo_dict["reply_markup"]
-            == inline_query_result_cached_photo.reply_markup.to_dict()
-        )
+        for key, value in inline_query_result_cached_photo_dict.items():
+            if key == "caption_entities":
+                assert all(isinstance(ce, dict) for ce in value)
+            else:
+                assert value == getattr(inline_query_result_cached_photo, key)
 
     def test_equality(self):
         a = InlineQueryResultCachedPhoto(self.id_, self.photo_file_id)
