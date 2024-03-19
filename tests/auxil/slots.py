@@ -1,38 +1,33 @@
 #!/usr/bin/env python
-#
-#  A library that provides a Python interface to the Telegram Bot API
-#  Copyright (C) 2015-2024
-#  Leandro Toledo de Souza <devs@python-telegram-bot.org>
-#
-#  This program is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU Lesser Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU Lesser Public License for more details.
-#
-#  You should have received a copy of the GNU Lesser Public License
-#  along with this program.  If not, see [http://www.gnu.org/licenses/].
+
 import inspect
 
-
-def mro_slots(obj, only_parents: bool = False):
-    """Returns a list of all slots of a class and its parents.
-    Args:
-        obj (:obj:`type`): The class or class-instance to get the slots from.
-        only_parents (:obj:`bool`, optional): If ``True``, only the slots of the parents are
-            returned. Defaults to ``False``.
+def mro_slots(obj, only_parents: bool = False) -> list:
     """
-    cls = obj if inspect.isclass(obj) else obj.__class__
+    Returns a list of all slots of a class and its parents.
 
-    classes = cls.__mro__[1:] if only_parents else cls.__mro__
+    Args:
+        obj (type): The class or class-instance to get the slots from.
+        only_parents (bool, optional): If True, only the slots of the parents are
+            returned. Defaults to False.
+
+    Returns:
+        list: A list of slot names.
+
+    Raises:
+        TypeError: If the object has no __mro__ attribute.
+    """
+    if not isinstance(obj, type):
+        obj = obj.__class__
+
+    classes = (obj.__mro__[1:] if only_parents else obj.__mro__) if hasattr(obj, '__mro__') else []
+
+    if not classes:
+        raise TypeError('The object has no __mro__ attribute.')
 
     return [
         attr
         for cls in classes
-        if hasattr(cls, "__slots__")  # The Exception class doesn't have slots
+        if hasattr(cls, "__slots__") and cls.__slots__ is not None
         for attr in cls.__slots__
     ]
