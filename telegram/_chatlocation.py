@@ -28,7 +28,6 @@ from telegram._utils.types import JSONDict
 if TYPE_CHECKING:
     from telegram import Bot
 
-
 class ChatLocation(TelegramObject):
     """This object represents a location to which a chat is connected.
 
@@ -36,15 +35,16 @@ class ChatLocation(TelegramObject):
     considered equal, if their :attr:`location` is equal.
 
     Args:
-        location (:class:`telegram.Location`): The location to which the supergroup is connected.
+        location (Location): The location to which the supergroup is connected.
             Can't be a live location.
-        address (:obj:`str`): Location address;
+        address (str): Location address;
             :tg-const:`telegram.ChatLocation.MIN_ADDRESS`-
             :tg-const:`telegram.ChatLocation.MAX_ADDRESS` characters, as defined by the chat owner.
+
     Attributes:
-        location (:class:`telegram.Location`): The location to which the supergroup is connected.
+        location (Location): The location to which the supergroup is connected.
             Can't be a live location.
-        address (:obj:`str`): Location address;
+        address (str): Location address;
             :tg-const:`telegram.ChatLocation.MIN_ADDRESS`-
             :tg-const:`telegram.ChatLocation.MAX_ADDRESS` characters, as defined by the chat owner.
 
@@ -68,8 +68,17 @@ class ChatLocation(TelegramObject):
         self._freeze()
 
     @classmethod
-    def de_json(cls, data: Optional[JSONDict], bot: "Bot") -> Optional["ChatLocation"]:
-        """See :meth:`telegram.TelegramObject.de_json`."""
+    def from_json(cls, data: JSONDict, bot: "Bot") -> Optional["ChatLocation"]:
+        """Creates a new ChatLocation object from a JSON-representable dict.
+
+        Args:
+            data (JSONDict): The JSON-representable dict to use.
+            bot (Bot): The Bot object associated with this ChatLocation.
+
+        Returns:
+            Optional[ChatLocation]: The created ChatLocation object, or None if the data is invalid.
+
+        """
         data = cls._parse_data(data)
 
         if not data:
@@ -77,13 +86,19 @@ class ChatLocation(TelegramObject):
 
         data["location"] = Location.de_json(data.get("location"), bot)
 
-        return super().de_json(data=data, bot=bot)
+        return cls(**data)
+
+    @classmethod
+    def de_json(cls, data: Optional[JSONDict], bot: "Bot") -> Optional["ChatLocation"]:
+        """See :meth:`telegram.TelegramObject.de_json`."""
+        return cls.from_json(data, bot)
 
     MIN_ADDRESS: Final[int] = constants.LocationLimit.MIN_CHAT_LOCATION_ADDRESS
     """:const:`telegram.constants.LocationLimit.MIN_CHAT_LOCATION_ADDRESS`
 
     .. versionadded:: 20.0
     """
+
     MAX_ADDRESS: Final[int] = constants.LocationLimit.MAX_CHAT_LOCATION_ADDRESS
     """:const:`telegram.constants.LocationLimit.MAX_CHAT_LOCATION_ADDRESS`
 
