@@ -1,9 +1,18 @@
-telegram.constants Module
-=========================
+# sphinx extensions
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autodocsumm',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.viewcode',
+    'sphinx_autodoc_typehints',
+    'sphinx.ext.title'
+]
+
+.. title:: telegram.constants Module
 
 .. automodule:: telegram.constants
     :members:
-    :show-inheritance:
+    :special-members: __format__, __new__, __repr__, __str__
     :no-undoc-members:
-    :inherited-members: Enum, EnumMeta, str, int
-    :exclude-members: __format__, __new__, __repr__, __str__
+    :show-inheritance:
+    :autosummary:
