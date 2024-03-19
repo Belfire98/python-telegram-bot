@@ -18,16 +18,15 @@
 # along with this program.  If not, see [http://www.gnu.org/licenses/].
 """This module contains the TypeHandler class."""
 
-from typing import Optional, Type, TypeVar
+from typing import Optional, Type, TypeVar, overload
 
 from telegram._utils.defaultvalue import DEFAULT_TRUE
-from telegram._utils.types import DVType
+from telegram._utils.types import CCT, HandlerCallback
 from telegram.ext._handlers.basehandler import BaseHandler
-from telegram.ext._utils.types import CCT, HandlerCallback
+from telegram.ext._utils.types import DVType
 
 RT = TypeVar("RT")
 UT = TypeVar("UT")
-
 
 class TypeHandler(BaseHandler[UT, CCT]):
     """Handler class to handle updates of custom types.
@@ -37,9 +36,8 @@ class TypeHandler(BaseHandler[UT, CCT]):
         attributes to :class:`telegram.ext.CallbackContext`. See its docs for more info.
 
     Args:
-        type (:external:class:`type`): The :external:class:`type` of updates this handler should
-            process, as determined by :obj:`isinstance`
-        callback (:term:`coroutine function`): The callback function for this handler. Will be
+        update_type (type[UT]): The type of updates this handler should process, as determined by :obj:`isinstance`
+        callback (HandlerCallback[UT, CCT, RT]): The callback function for this handler. Will be
             called when :meth:`check_update` has determined that an update should be processed by
             this handler. Callback signature::
 
@@ -47,49 +45,54 @@ class TypeHandler(BaseHandler[UT, CCT]):
 
             The return value of the callback is usually ignored except for the special case of
             :class:`telegram.ext.ConversationHandler`.
-        strict (:obj:`bool`, optional): Use ``type`` instead of :obj:`isinstance`.
+        strict (bool = False): Use `update_type` instead of :obj:`isinstance`.
             Default is :obj:`False`.
-        block (:obj:`bool`, optional): Determines whether the return value of the callback should
+        block (DVType[bool] = DEFAULT_TRUE): Determines whether the return value of the callback should
             be awaited before processing the next handler in
             :meth:`telegram.ext.Application.process_update`. Defaults to :obj:`True`.
 
             .. seealso:: :wiki:`Concurrency`
 
     Attributes:
-        type (:external:class:`type`): The :external:class:`type` of updates this handler should
-            process.
-        callback (:term:`coroutine function`): The callback function for this handler.
-        strict (:obj:`bool`): Use :external:class:`type` instead of :obj:`isinstance`. Default is
+        update_type (type[UT]): The type of updates this handler should process.
+        callback (HandlerCallback[UT, CCT, RT]): The callback function for this handler.
+        strict (bool): Use `update_type` instead of :obj:`isinstance`. Default is
             :obj:`False`.
-        block (:obj:`bool`): Determines whether the return value of the callback should be
+        block (bool): Determines whether the return value of the callback should be
             awaited before processing the next handler in
             :meth:`telegram.ext.Application.process_update`.
 
     """
 
-    __slots__ = ("strict", "type")
+    __slots__ = ("strict", "update_type")
 
     def __init__(
         self,
-        type: Type[UT],  # pylint: disable=redefined-builtin
+        update_type: Type[UT],
         callback: HandlerCallback[UT, CCT, RT],
         strict: bool = False,
         block: DVType[bool] = DEFAULT_TRUE,
     ):
         super().__init__(callback, block=block)
-        self.type: Type[UT] = type
+        self.update_type: Type[UT] = update_type
         self.strict: Optional[bool] = strict
+
+    @overload
+    def check_update(self, update: UT) -> bool: ...
+
+    @overload
+    def check_update(self, update: object) -> bool: ...
 
     def check_update(self, update: object) -> bool:
         """Determines whether an update should be passed to this handler's :attr:`callback`.
 
         Args:
-            update (:obj:`object`): Incoming update.
+            update (object): Incoming update.
 
         Returns:
-            :obj:`bool`
+            bool
 
         """
         if not self.strict:
-            return isinstance(update, self.type)
-        return type(update) is self.type  # pylint: disable=unidiomatic-typecheck
+            return isinstance(update, self.update_type)
+        return type(update) is self.update_type  # pylint: disable=unidiomatic-typecheck
