@@ -1,3 +1,7 @@
 .article-container h1 {
-      overflow-wrap: anywhere;
+  /* Allow long words to break and wrap onto the next line */
+  word-wrap: break-word;
+
+  /* Allow long lines to be broken between words and letters */
+  hyphens: auto;
 }
