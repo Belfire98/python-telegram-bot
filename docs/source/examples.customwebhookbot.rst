@@ -1,43 +1,33 @@
-``customwebhookbot.py``
-=======================
+import os
+from flask import Flask, request, jsonify
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, Filters, CallbackQueryHandler
 
-This example is available for different web frameworks.
-You can select your preferred framework by opening one of the tabs above the code example.
+# 1. Telegram Bot Setup
+from bot_manager import telegram_bot_manager
 
-.. hint::
+# 2. Web Framework Setup
+app = Flask(__name__)
 
-    The following examples show how different Python web frameworks can be used alongside PTB.
-    This can be useful for two use cases:
+@app.route('/<token>', methods=['POST'])
+def webhook(token):
+    if token == os.environ['TELEGRAM_BOT_TOKEN']:
+        update = Update.de_json(request.get_json(force=True), bot)
+        telegram_bot_manager.process_new_updates([update])
+        return ''
+    else:
+        return 'Invalid token'
 
-    1. For extending the functionality of your existing bot to handling updates of external services
-    2. For extending the functionality of your exisiting web application to also include chat bot functionality
+@app.route('/set_webhook', methods=['GET'])
+def set_webhook():
+    url = f'https://{os.environ["WEBAPP_HOST"]}:{os.environ["PORT"]}/{os.environ["TELEGRAM_BOT_TOKEN"]}'
+    s = Updater(token=os.environ['TELEGRAM_BOT_TOKEN'], use_context=True).bot.set_webhook(url)
+    if s:
+        return jsonify({'status': 'Webhook set'})
+    else:
+        return jsonify({'status': 'Webhook not set'})
 
-    How the PTB and web framework components of the examples below are viewed surely depends on which use case one has in mind.
-    We are fully aware that a combination of PTB with web frameworks will always mean finding a tradeoff between usability and best practices for both PTB and the web framework and these examples are certainly far from optimal solutions.
-    Please understand them as starting points and use your expertise of the web framework of your choosing to build up on them.
-    You are of course also very welcome to help improve these examples!
-
-.. tab:: ``starlette``
-
-    .. literalinclude:: ../../examples/customwebhookbot/starlettebot.py
-       :language: python
-       :linenos:
-
-.. tab:: ``flask``
-
-    .. literalinclude:: ../../examples/customwebhookbot/flaskbot.py
-       :language: python
-       :linenos:
-
-.. tab:: ``quart``
-
-    .. literalinclude:: ../../examples/customwebhookbot/quartbot.py
-       :language: python
-       :linenos:
-
-.. tab:: ``Django``
-
-    .. literalinclude:: ../../examples/customwebhookbot/djangobot.py
-       :language: python
-       :linenos:
-    
+# 3. Main Application
+if __name__ == '__main__':
+    telegram_bot_manager.init_bot()
+    app.run(host=os.environ['WEBAPP_HOST'], port=os.environ['PORT'])
